@@ -961,7 +961,7 @@ export function CourseReader() {
         }
         back={`/etudiant/matieres/${info.cs?.id}`}
       />
-      <div className="reader-layout">
+      <div className="course-reading-layout">
         <div className="stack">
           <CourseVideo
             provider={course.video_provider}
@@ -1024,7 +1024,10 @@ export function CourseReader() {
             )}
           </nav>
         </div>
-        <aside className="stack">
+        <section
+          className="stack course-practice"
+          aria-label="Exercices du cours"
+        >
           <Panel title="À toi de pratiquer">
             <p className="muted">
               La meilleure façon de comprendre, c’est d’essayer.
@@ -1065,7 +1068,7 @@ export function CourseReader() {
               Reprends l’exemple, pose ton raisonnement et vérifie chaque étape.
             </p>
           </Panel>
-        </aside>
+        </section>
       </div>
     </>
   );

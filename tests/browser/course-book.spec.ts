@@ -16,14 +16,12 @@ test("vidéo visible et PDF sous forme de livre, navigation, zoom, mobile et acc
   await page.goto("/connexion");
   await page.evaluate(() => sessionStorage.setItem("kf-demo-role", "teacher"));
   await page.goto(`/prof/cours/${id(110)}`);
-  const documents = page
-    .locator("section")
-    .filter({
-      has: page.getByRole("heading", {
-        name: "Documents de cours",
-        exact: true,
-      }),
-    });
+  const documents = page.locator("section").filter({
+    has: page.getByRole("heading", {
+      name: "Documents de cours",
+      exact: true,
+    }),
+  });
   await documents
     .locator("input[type=file]")
     .setInputFiles("tests/fixtures/course-book.pdf");
@@ -56,8 +54,19 @@ test("vidéo visible et PDF sous forme de livre, navigation, zoom, mobile et acc
       .bottom,
     book: document.querySelector(".course-book-panel")!.getBoundingClientRect()
       .top,
+    videoWidth: document.querySelector(".course-video")!.getBoundingClientRect()
+      .width,
+    screenWidth: innerWidth,
+    lessonBottom: document
+      .querySelector(".lesson-body")!
+      .getBoundingClientRect().bottom,
+    practiceTop: document
+      .querySelector(".course-practice")!
+      .getBoundingClientRect().top,
   }));
   expect(positions.book).toBeGreaterThan(positions.video);
+  expect(positions.videoWidth).toBeGreaterThan(positions.screenWidth * 0.9);
+  expect(positions.practiceTop).toBeGreaterThan(positions.lessonBottom);
   await expect(page.getByLabel("Aller à la page")).toHaveValue("1");
   await page.getByRole("button", { name: "Suivant", exact: true }).click();
   await expect(page.getByLabel("Aller à la page")).toHaveValue("3");
@@ -95,5 +104,13 @@ test("vidéo visible et PDF sous forme de livre, navigation, zoom, mobile et acc
   await page.goto(`/etudiant/cours/${id(110)}`);
   await expect(page.locator(".course-video iframe")).toBeVisible();
   await expect(page.locator("canvas[data-rendered=true]")).toHaveCount(1);
+  const studentLayout = await page.evaluate(() => ({
+    lesson: document.querySelector(".lesson-panel")!.getBoundingClientRect()
+      .bottom,
+    practice: document
+      .querySelector(".course-practice")!
+      .getBoundingClientRect().top,
+  }));
+  expect(studentLayout.practice).toBeGreaterThan(studentLayout.lesson);
   expect(errors).toEqual([]);
 });

@@ -41,7 +41,9 @@ export function DiscoveryLayout() {
     window.scrollTo(0, 0);
   }, [location.pathname]);
   return (
-    <div className="discovery-page">
+    <div
+      className={`discovery-page ${location.pathname.startsWith("/decouvrir/cours/") ? "discovery-course-page" : ""}`}
+    >
       <a href="#discovery-main" className="skip-link">
         Aller au contenu
       </a>
@@ -147,7 +149,7 @@ export function CatalogPage() {
       />
       {id ? (
         course ? (
-          <div className="split-layout">
+          <div className="course-reading-layout">
             <div className="stack">
               <Panel>
                 <span className="eyebrow">
@@ -170,7 +172,10 @@ export function CatalogPage() {
                 </div>
               </Panel>
             </div>
-            <aside className="stack">
+            <section
+              className="stack course-practice"
+              aria-label="Exercices du cours"
+            >
               <Panel title="À toi de pratiquer">
                 <p>
                   Les exercices et les lives sont inclus dans les packs de cette
@@ -203,7 +208,7 @@ export function CatalogPage() {
               <ButtonLink to={journeyURL("/packs", context)}>
                 Découvrir les packs <ArrowRight size={17} />
               </ButtonLink>
-            </aside>
+            </section>
           </div>
         ) : (
           <Empty

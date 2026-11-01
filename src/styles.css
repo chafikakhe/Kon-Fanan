@@ -7040,3 +7040,35 @@ select option {
 .book-footer > button:hover {
   background: rgba(255, 255, 255, 0.06);
 }
+
+/* Course media uses the available screen width; practice follows the lesson. */
+.discovery-course-page .discovery-main {
+  max-width: none;
+}
+.course-reading-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+.course-reading-layout > .stack {
+  min-width: 0;
+  width: 100%;
+}
+.course-practice .exercise-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.course-practice .exercise-list > a {
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .course-practice .exercise-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.discovery-course-page .discovery-header,
+.discovery-course-page .discovery-footer {
+  max-width: none;
+}

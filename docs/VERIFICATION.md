@@ -30,6 +30,7 @@ Exécution locale : macOS arm64, Node.js 26, Chromium headless via Playwright. L
 - Découverte sans compte : niveau, matière, contenu du cours, exercice, packs ; matière présélectionnée modifiable, compteur et nombre exact, récapitulatif du prix total, inscription sans classe imposée, reprise complète après connexion et demande en attente sans faux paiement.
 - Changement de niveau, pack impossible désactivé, accès direct anonyme à un exercice orienté vers les packs et séance orientée vers la connexion. Nouvelles pages à 360, 390, 768 et 1440 px sans débordement ; analyse axe WCAG 2 A/AA sans échec sur la sélection de pack.
 - Lecteur vidéo visible dès l’ouverture ; PDF de quatre pages en livre sous la vidéo, double page, pagination, zoom, affichage agrandi/Échap, clavier, adaptation mobile et accès étudiant. Analyse axe WCAG 2 A/AA sans échec sur le lecteur testé.
+- Élargissement du cours et déplacement des exercices sous le contenu : build et cinq scénarios navigateur ciblés réussis. Le test vérifie la largeur du lecteur public et l’ordre visuel des exercices dans les deux parcours.
 
 Ces parcours navigateur utilisent la démonstration isolée. Les règles de production sont vérifiées séparément dans PostgreSQL, pas déduites de l’interface.
 

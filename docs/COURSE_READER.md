@@ -1,6 +1,6 @@
 # Vidéo et livre PDF du cours
 
-Les pages publiques `/decouvrir/cours/:id` et le lecteur étudiant `/etudiant/cours/:id` affichent le lecteur vidéo directement, sans bouton préalable et sans lecture automatique. Le PDF est présenté juste en dessous, puis vient le texte du cours. Les exercices restent dans leur colonne et conservent leurs règles d’accès.
+Les pages publiques `/decouvrir/cours/:id` et le lecteur étudiant `/etudiant/cours/:id` affichent le lecteur vidéo directement, sans bouton préalable et sans lecture automatique. Le PDF est présenté juste en dessous, puis vient le texte du cours. La lecture occupe toute la largeur disponible ; la page publique utilise toute la largeur de l’écran avec des marges adaptées. « À toi de pratiquer » et les exercices suivent le cours, avec les mêmes règles d’accès.
 
 Le composant commun `CourseVideo` utilise les vidéos YouTube/Vimeo déjà configurées par le professeur. `CourseBook` retrouve les PDF attachés dans « Documents de cours ». Plusieurs documents proposent un sélecteur. Sans fichier, un état vide explique au professeur où l’ajouter ; aucun document fictif n’est créé en production.
 
