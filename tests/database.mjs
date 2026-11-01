@@ -46,7 +46,7 @@ create role anon;
 create role authenticated;
 create role service_role bypassrls;
 create schema auth;
-create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');
+create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,deleted_at timestamptz,raw_user_meta_data jsonb default '{}');
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 create function auth.role() returns text language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'role','') $$;
 grant usage on schema auth to anon,authenticated,service_role;
@@ -880,6 +880,59 @@ await rejects(
   "Anonyme ne lit pas les profils",
 );
 await root();
+const bootstrapId = "a35938cd-c92b-4a33-a12d-828f52d478e7";
+const bootstrapMigration = await readFile(
+  new URL("../supabase/migrations/0004_bootstrap_admin.sql", import.meta.url),
+  "utf8",
+);
+const adminsBefore = Number(
+  (await one("select count(*) n from public.account_access where role='admin'"))
+    .n,
+);
+await db.exec(bootstrapMigration);
+check(
+  Number(
+    (
+      await one(
+        "select count(*) n from public.account_access where role='admin'",
+      )
+    ).n,
+  ) === adminsBefore,
+  "Bootstrap absent : aucun autre compte promu",
+);
+await sql(
+  "insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) values($1,'bootstrap-fixture@example.test',now(),$2)",
+  [bootstrapId, JSON.stringify({ display_name: "Profil à conserver" })],
+);
+await db.exec(bootstrapMigration);
+const bootstrapped = await one(
+  "select role,status from public.account_access where user_id=$1",
+  [bootstrapId],
+);
+check(
+  bootstrapped.role === "admin" && bootstrapped.status === "active",
+  "Bootstrap : seul le compte Auth ciblé devient admin actif",
+);
+check(
+  (
+    await one("select display_name from public.profiles where id=$1", [
+      bootstrapId,
+    ])
+  ).display_name === "Profil à conserver",
+  "Bootstrap conserve les informations du profil",
+);
+await db.exec(bootstrapMigration);
+check(
+  Number(
+    (
+      await one(
+        "select count(*) n from private.audit_events where resource_id=$1 and action='administrator_bootstrapped'",
+        [bootstrapId],
+      )
+    ).n,
+  ) === 1,
+  "Bootstrap répété : une seule trace d’audit",
+);
 await db.close();
 console.log(
   `\n${checks} vérifications PostgreSQL/RLS réussies. Aucun appel Google ou service Storage réel n’est simulé comme vérifié.`,

@@ -5,7 +5,8 @@ Projet : `kon-fanan` (`wzjbamzlwchaqkcoascj`), région `eu-west-1`.
 ## Appliqué via CLI
 
 - Supabase CLI `2.122.0`, projet lié depuis le workspace local.
-- Migrations `0001_core.sql`, `0002_integrations.sql`, `0003_profile_stats.sql` appliquées et présentes dans l’historique distant.
+- Migrations `0001_core.sql`, `0002_integrations.sql`, `0003_profile_stats.sql`, `0004_bootstrap_admin.sql` appliquées et présentes dans l’historique distant.
+- Premier administrateur demandé par le propriétaire activé par `0004`, sur son UUID Auth vérifié. Le profil est conservé, le mot de passe reste inchangé et la transition est auditée. La migration est idempotente et ne modifie aucun compte si cette identité est absente d’un autre environnement.
 - `supabase/seed.sql` appliqué : niveaux, matières et année scolaire uniquement. Aucun compte, mot de passe ou travail fictif créé sur le projet.
 - Les 15 Edge Functions sont déployées et actives. Les paramètres `verify_jwt` correspondent à `config.toml`.
 - Types TypeScript générés depuis la base distante dans `src/lib/database.generated.ts`.
@@ -21,7 +22,8 @@ Les secrets générés sont conservés dans `supabase/.env.local` avec des permi
 - Appel du worker sans secret refusé : HTTP 403 / `ACCESS_DENIED`.
 - Appel Google status sans session refusé : HTTP 401 / `AUTH_REQUIRED`.
 - Les 15 fonctions sont `ACTIVE`, aucune fonction attendue absente, aucun écart de configuration JWT.
-- Vérification locale après adaptation du paquet : TypeScript, build et 8 tests Edge réussis. Les 68 contrôles SQL/RLS restent réussis.
+- Vérification locale après adaptation du paquet : TypeScript, build et 8 tests Edge réussis. Les 72 contrôles SQL/RLS réussissent après ajout du bootstrap administrateur.
+- Contrôle distant après `0004` : compte ciblé `admin / active`, date d’activation présente et un événement d’audit de bootstrap.
 
 ## Adaptation du paquet image
 
@@ -35,6 +37,9 @@ Le fichier décompressé reste identique à la source testée (SHA-256 `54629cbc
 npx supabase link --project-ref wzjbamzlwchaqkcoascj --yes
 npx supabase db push --linked --include-seed --dry-run
 npx supabase db push --linked --include-seed --yes
+# Activation ciblée du premier administrateur :
+npx supabase db push --linked --dry-run
+npx supabase db push --linked --yes
 npx supabase secrets set --env-file supabase/.env.local --project-ref wzjbamzlwchaqkcoascj
 npx supabase functions deploy --project-ref wzjbamzlwchaqkcoascj --use-api --jobs 3
 # Reprises ciblées après adaptation du paquet :
@@ -46,7 +51,6 @@ npx supabase functions deploy files-finalize --project-ref wzjbamzlwchaqkcoascj 
 
 Le frontend n’a pas été publié sur un hébergeur par cette opération. L’origine actuellement configurée est celle du fichier `.env` : `http://localhost:5173`.
 
-- Créer/confirmer le premier compte et attribuer son rôle admin selon `SETUP.md`.
 - Vérifier les URLs Auth autorisées et le SMTP de recette.
 - Configurer `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`, l’écran de consentement et le callback dans Google Cloud.
 - Planifier le worker avec son secret et tester un vrai cycle Calendar/Meet.

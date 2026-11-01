@@ -7,7 +7,7 @@
 | TypeScript frontend strict | Réussi : `npm run typecheck` |
 | Build de production Vite | Réussi : `npm run build` |
 | Tests unitaires | 5 réussis : vidéo sûre, quotas, fuseau Casablanca, isolation des données de démonstration |
-| Migrations et permissions PostgreSQL/PGlite | 68 vérifications réussies |
+| Migrations et permissions PostgreSQL/PGlite | 72 vérifications réussies |
 | TypeScript Deno / Edge | Les 15 handlers et les helpers passent `npm run check:edge` |
 | Tests Edge | 8 réussis |
 | Playwright | 7 scénarios distincts vérifiés : suite complète de 6 réussie en 2,8 minutes, puis 3 contrôles ciblés réussis dont le nouveau scénario d’envoi interrompu |
@@ -37,6 +37,8 @@ Les migrations sont exécutées dans PostgreSQL WASM/PGlite. Les tests simulent 
 Couverture : inscription forcée étudiant/pending malgré métadonnées falsifiées ; permissions d’administration ; matière de la bonne classe ; admission répétée et capacité ; absence d’activation partielle ; publication cours/exercice ; deux professeurs de la même matière ; copie du seul professeur responsable ; quotas/réservation Storage ; refus des chemins arbitraires et des remplacements ; snapshots et versions ; corrections brouillon/publiées ; révocation/suspension ; résultats de compétition retenus jusqu’à publication ; classement sous pseudonymes ; schéma privé et annuaire email protégés ; jobs de séance idempotents ; événement stable ; fenêtre de lien ; annulation pendant création ; ticket/state/preuve navigateur à usage unique ; profil sans élévation de rôle.
 
 Les tables Auth et Storage sont représentées par un schéma de test. Le test de capacité vérifie une dernière place puis un refus sans modification partielle ; **la concurrence avec deux connexions PostgreSQL réelles reste à exécuter** sur Supabase. Le verrou SQL et l’unicité sont implémentés, mais PGlite mono-connexion ne prouve pas le comportement simultané en production.
+
+Le bootstrap administrateur est aussi testé : identité absente sans effet, activation du seul compte ciblé, conservation de son profil et absence de doublon d’audit lors d’une réexécution.
 
 ## Tests Edge exécutés
 
