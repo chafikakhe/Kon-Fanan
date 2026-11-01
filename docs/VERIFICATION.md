@@ -7,10 +7,10 @@
 | TypeScript frontend strict | Réussi : `npm run typecheck` |
 | Build de production Vite | Réussi : `npm run build` |
 | Tests unitaires | 5 réussis : vidéo sûre, quotas, fuseau Casablanca, isolation des données de démonstration |
-| Migrations et permissions PostgreSQL/PGlite | 116 vérifications réussies |
-| TypeScript Deno / Edge | Les 15 handlers et les helpers passent `npm run check:edge` |
-| Tests Edge | 8 réussis |
-| Playwright | Suite complète : 10 scénarios réussis en 3,1 minutes ; puis 4 scénarios packs/administration réussis, dont un contrôle supplémentaire des accès historiques (11 scénarios distincts) |
+| Migrations et permissions PostgreSQL/PGlite | 125 vérifications réussies |
+| TypeScript Deno / Edge | Les 16 handlers et les helpers passent `npm run check:edge` |
+| Tests Edge | 9 réussis |
+| Playwright | Suite complète : 12 scénarios réussis en 3,3 minutes, incluant le lecteur vidéo/PDF |
 | Responsive | 46 routes connectées × 360, 390, 768, 1024 et 1440 px ; landing aux mêmes largeurs |
 | Débordement horizontal | Aucun débordement global sur ces contrôles ; titre de hero contrôlé également |
 | Accessibilité automatique | Aucun échec axe WCAG 2 A/AA sur landing, connexion et accueil étudiant testés |
@@ -29,6 +29,7 @@ Exécution locale : macOS arm64, Node.js 26, Chromium headless via Playwright. L
 - Création de classe ; création de cours avec contenu/vidéo, exercice associé et publication visible par l’étudiant autorisé.
 - Découverte sans compte : niveau, matière, contenu du cours, exercice, packs ; matière présélectionnée modifiable, compteur et nombre exact, récapitulatif du prix total, inscription sans classe imposée, reprise complète après connexion et demande en attente sans faux paiement.
 - Changement de niveau, pack impossible désactivé, accès direct anonyme à un exercice orienté vers les packs et séance orientée vers la connexion. Nouvelles pages à 360, 390, 768 et 1440 px sans débordement ; analyse axe WCAG 2 A/AA sans échec sur la sélection de pack.
+- Lecteur vidéo visible dès l’ouverture ; PDF de quatre pages en livre sous la vidéo, double page, pagination, zoom, affichage agrandi/Échap, clavier, adaptation mobile et accès étudiant. Analyse axe WCAG 2 A/AA sans échec sur le lecteur testé.
 
 Ces parcours navigateur utilisent la démonstration isolée. Les règles de production sont vérifiées séparément dans PostgreSQL, pas déduites de l’interface.
 
@@ -45,6 +46,8 @@ Le bootstrap administrateur est aussi testé : identité absente sans effet, act
 Les packs sont testés avec les fonctions et rôles PostgreSQL réels dans PGlite : sélection exacte/distincte et compatible avec le niveau, prix serveur, trois offres, email confirmé, idempotence et conflit, isolation des commandes, absence d’accès en attente/refus, impossibilité d’auto-validation, référence obligatoire, activation administrative atomique, matières/niveaux isolés, profils et notifications des nouveaux étudiants, lives contrôlés, révocation, suspension et conservation des droits historiques. Les scénarios navigateur utilisent la démo ; ils n’attestent pas d’un règlement réel. Le catalogue et les refus anonymes ont également été contrôlés sur Supabase hébergé : voir [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Tests Edge exécutés
+
+Le partage des PDF ajoute neuf contrôles SQL : métadonnées publiques sans chemin, signature réservée au serveur, seuls fichiers attachés à un cours public, refus des PDF d’exercice et de substitution, retrait après archivage. Un contrôle Edge vérifie l’origine LAN autorisée pour ce seul endpoint public, avec maintien du refus sur les endpoints privés. Le vrai cours LOGIQUE et son PDF de 17 pages ont été ouverts dans Chromium : vidéo visible, deux pages rendues sur ordinateur, une sur téléphone, sans débordement ni erreur JavaScript. La lecture vidéo complète n’a pas été lancée.
 
 - AES-GCM : IV distincts, déchiffrement et refus d’altération.
 - Domaine Meet exact et identité d’événement.

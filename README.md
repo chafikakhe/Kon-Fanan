@@ -4,7 +4,7 @@ Application web React 19, TypeScript strict, Vite et React Router, avec backend 
 
 ## Lancer le projet
 
-Prérequis : Node.js ≥ 22.12 et npm.
+Prérequis : Node.js ≥ 22.13 et npm.
 
 ```sh
 npm ci
@@ -43,6 +43,7 @@ Les migrations versionnées sont dans `supabase/migrations`. `seed.sql` contient
 
 - Landing, connexion/inscription/confirmation, récupération, admission, suspension, notifications et profil.
 - Découverte publique niveau → matière → cours → exercice, packs de 1/2/3 matières à 100/180/270 DH au total, reprise après connexion, demandes et validation administrative du règlement. Aucun paiement en ligne simulé ; détails dans [PACKS.md](docs/PACKS.md).
+- Vidéo intégrée directement et livre PDF sous la vidéo : double page, navigation, zoom, affichage agrandi et lecture mobile. Les PDF attachés aux cours publiés sont consultables sans compte ; les documents d’exercice restent protégés. Voir [COURSE_READER.md](docs/COURSE_READER.md).
 - Admin : admissions avec classe et matières, capacité, classes, étudiants et droits, professeurs et affectations, référentiels, modération/transfert de contenus, état des intégrations et journal.
 - Professeur : groupes, cours/vidéos/exercices, copies et corrections brouillon/publiées, nouvelle version, challenges/concours et résultats, annonces, séances et connexion Google.
 - Étudiant : matières autorisées, lecture et progression déclarative, dépôt photo/galerie/PDF avec aperçu, brouillon et reprise d’erreur, historique, corrections, défis et séances.

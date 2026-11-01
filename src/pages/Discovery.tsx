@@ -22,6 +22,7 @@ import {
   Panel,
 } from "../components/ui";
 import { Markdown } from "../components/RichText";
+import { CourseVideo, CourseBook } from "../components/CourseMedia";
 import { supabase } from "../lib/supabase";
 import {
   journeyURL,
@@ -153,12 +154,14 @@ export function CatalogPage() {
                   {subject?.label} · {course.teacher_name}
                 </span>
                 <h2>{course.chapter_label || course.title}</h2>
-                {course.video_id && (
-                  <PublicVideo
-                    provider={course.video_provider}
-                    id={course.video_id}
-                  />
-                )}
+              </Panel>
+              <CourseVideo
+                provider={course.video_provider}
+                id={course.video_id}
+                title={course.title}
+              />
+              <CourseBook key={course.id} courseId={course.id} discovery />
+              <Panel>
                 <div
                   className="lesson-body"
                   dir={course.content_language === "ar" ? "rtl" : "auto"}
@@ -310,38 +313,6 @@ export function CatalogPage() {
         </>
       )}
     </>
-  );
-}
-function PublicVideo({
-  provider,
-  id,
-}: {
-  provider: string | null;
-  id: string;
-}) {
-  const [play, setPlay] = useState(false);
-  const valid =
-    provider === "youtube"
-      ? /^[\w-]{11}$/.test(id)
-      : provider === "vimeo" && /^\d{1,15}$/.test(id);
-  if (!valid) return null;
-  return play ? (
-    <iframe
-      className="public-video"
-      title="Vidéo du cours"
-      src={
-        provider === "youtube"
-          ? `https://www.youtube-nocookie.com/embed/${id}`
-          : `https://player.vimeo.com/video/${id}`
-      }
-      allow="fullscreen; picture-in-picture"
-      allowFullScreen
-    />
-  ) : (
-    <Button variant="secondary" onClick={() => setPlay(true)}>
-      <Video size={18} />
-      Lire la vidéo du cours
-    </Button>
   );
 }
 function CatalogError({ error, retry }: { error: string; retry: () => void }) {

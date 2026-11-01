@@ -14,3 +14,4 @@ playwright-report/
 .DS_Store
 supabase/functions/node_modules/
 supabase/.env.local
+public/pdfjs/

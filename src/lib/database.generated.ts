@@ -1517,6 +1517,16 @@ export type Database = {
         };
         Returns: Json;
       };
+      discovery_course_documents: {
+        Args: { p_course_id: string };
+        Returns: {
+          id: string;
+          label: string;
+          mime_type: string;
+          original_name: string;
+          size_bytes: number;
+        }[];
+      };
       finalize_file: {
         Args: {
           p_file_id: string;
@@ -1560,6 +1570,10 @@ export type Database = {
           name: string;
           year_label: string;
         }[];
+      };
+      public_course_document: {
+        Args: { p_course_id: string; p_file_id: string };
+        Returns: Json;
       };
       publish_announcement: {
         Args: { p_announcement_id: string; p_expected_version: number };

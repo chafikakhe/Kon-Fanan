@@ -6803,3 +6803,240 @@ select option {
     flex-wrap: wrap;
   }
 }
+
+/* A course plays above its book; the same reader is used in discovery and study. */
+.course-video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #101713;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  overflow: hidden;
+}
+.course-video iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.course-video-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--mint);
+}
+.course-video-empty p {
+  font-size: 13px;
+  margin: 0;
+}
+.course-book-panel {
+  padding: 20px;
+}
+.course-book-panel > .panel-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.book-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+.book-heading > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+}
+.book-tools {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+}
+.book-zoom {
+  min-width: 48px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--muted);
+}
+.book-scroll {
+  overflow: auto;
+  max-height: 80vh;
+  padding: 18px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overscroll-behavior: contain;
+}
+.book-spread {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 auto;
+  perspective: 1600px;
+  animation: book-turn 0.28s ease-out;
+}
+.book-paper {
+  position: relative;
+  flex-shrink: 0;
+  min-height: 180px;
+  color: #1e2720;
+  background: #fffef9;
+  border-radius: 2px 7px 7px 2px;
+  box-shadow:
+    0 4px 14px #0006,
+    3px 0 0 #dbd7cc,
+    5px 0 0 #fffdf4;
+  overflow: hidden;
+}
+.book-paper canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.book-paper:after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 22px;
+  background: linear-gradient(90deg, #42311c18, transparent);
+  pointer-events: none;
+}
+.two-pages .book-paper:first-child {
+  border-radius: 7px 2px 2px 7px;
+}
+.two-pages .book-paper:first-child:after {
+  left: auto;
+  right: 0;
+  background: linear-gradient(270deg, #42311c1f, transparent);
+}
+.book-page-number {
+  display: block;
+  padding: 5px;
+  text-align: center;
+  color: #6b675f;
+  font-size: 11px;
+  background: #fffef9;
+}
+.book-page-loading {
+  display: block;
+  padding: 28px;
+  font-size: 12px;
+  color: #5d655d;
+}
+.book-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+.book-page-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.book-page-input select {
+  width: 58px;
+  min-width: 0;
+  padding: 8px;
+}
+.book-navigation .button {
+  padding: 10px;
+  font-size: 12px;
+  gap: 5px;
+}
+.book-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.book-footer a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--mint);
+  margin-left: auto;
+}
+.pdf-book.is-expanded {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  padding: 24px;
+  background: #18221d;
+  display: flex;
+  flex-direction: column;
+}
+.pdf-book.is-expanded .book-scroll {
+  max-height: none;
+  flex: 1;
+}
+@keyframes book-turn {
+  from {
+    opacity: 0.5;
+    transform: rotateY(-3deg);
+  }
+  to {
+    opacity: 1;
+    transform: rotateY(0);
+  }
+}
+@media (max-width: 640px) {
+  .course-book-panel {
+    padding: 16px;
+  }
+  .book-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .book-tools {
+    align-self: flex-end;
+  }
+  .book-scroll {
+    padding: 12px 16px;
+  }
+  .book-navigation {
+    gap: 6px;
+  }
+  .book-navigation .button span {
+    display: none;
+  }
+  .book-page-input select {
+    font-size: 16px;
+  }
+  .pdf-book.is-expanded {
+    padding: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-spread {
+    animation: none;
+  }
+}
+.book-footer > button {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mint);
+}
+.book-footer > button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}

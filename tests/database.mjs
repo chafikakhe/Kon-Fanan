@@ -1383,6 +1383,84 @@ await rejects(
 );
 await root();
 
+await db.exec(
+  await readFile(
+    new URL(
+      "../supabase/migrations/0006_public_course_documents.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+);
+const publicPdf = uid(2000),
+  privateExercisePdf = uid(2001);
+await sql(
+  "insert into public.files(id,owner_id,bucket,object_path,original_name,mime_type,size_bytes,status,target_type,target_id) values($1,$2,'course-materials','fixture-course.pdf','Cours.pdf','application/pdf',100,'ready','course',$3),($4,$2,'course-materials','fixture-exercise.pdf','Exercice.pdf','application/pdf',100,'ready','exercise',$5)",
+  [publicPdf, teacher, course.id, privateExercisePdf, exercise.id],
+);
+await sql(
+  "insert into public.course_resources(course_id,file_id,label) values($1,$2,$3)",
+  [course.id, publicPdf, "Livre du cours"],
+);
+await as(null, "anon");
+const publicDocuments = await sql(
+  "select * from public.discovery_course_documents($1)",
+  [course.id],
+);
+check(
+  publicDocuments.length === 1 && publicDocuments[0].id === publicPdf,
+  "Visiteur découvre uniquement le PDF attaché au cours publié",
+);
+check(
+  !("object_path" in publicDocuments[0]) && !("bucket" in publicDocuments[0]),
+  "Projection publique des PDF sans chemin Storage",
+);
+await rejects(
+  () => call("public_course_document", [course.id, publicPdf]),
+  /permission denied/,
+  "Seul le serveur peut obtenir le chemin de signature du PDF",
+);
+await rejects(
+  () => sql("select * from public.files where id=$1", [privateExercisePdf]),
+  /permission denied/,
+  "Le partage du PDF du cours ne publie pas les fichiers des exercices",
+);
+await as(null, "service_role");
+check(
+  (await call("public_course_document", [course.id, publicPdf])).object_path ===
+    "fixture-course.pdf",
+  "Serveur obtient le seul chemin du PDF de cours validé",
+);
+await rejects(
+  () => call("public_course_document", [course.id, privateExercisePdf]),
+  /RESOURCE_NOT_FOUND/,
+  "Demande de signature d’un PDF exercice refusée",
+);
+await rejects(
+  () => call("public_course_document", [secondCourse.id, publicPdf]),
+  /RESOURCE_NOT_FOUND/,
+  "PDF d’un autre cours non substituable",
+);
+await root();
+await sql("update public.courses set status='archived' where id=$1", [
+  course.id,
+]);
+await as(null, "anon");
+check(
+  (
+    await sql("select * from public.discovery_course_documents($1)", [
+      course.id,
+    ])
+  ).length === 0,
+  "PDF retiré du catalogue dès archivage du cours",
+);
+await as(null, "service_role");
+await rejects(
+  () => call("public_course_document", [course.id, publicPdf]),
+  /RESOURCE_NOT_FOUND/,
+  "Archivage empêche toute nouvelle signature du PDF",
+);
+await root();
 await db.close();
 console.log(
   `\n${checks} vérifications PostgreSQL/RLS réussies. Aucun appel Google ou service Storage réel n’est simulé comme vérifié.`,

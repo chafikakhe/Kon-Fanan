@@ -274,3 +274,40 @@ Deno.test(
     }
   },
 );
+
+Deno.test(
+  "lecture publique des PDF accepte une origine LAN sans ouvrir les endpoints privés",
+  async () => {
+    Deno.env.set("APP_BASE_URL", "https://konfanan.test");
+    const req = () =>
+      new Request("https://backend.test", {
+        method: "POST",
+        headers: { Origin: "http://192.168.1.7:5173" },
+      });
+    const publicHandler = endpoint(
+      async () => ({ url: "fixture-signed-course-url" }),
+      ["POST"],
+      { publicRead: true },
+    );
+    const publicResponse = await publicHandler(req());
+    assert(publicResponse.status === 200);
+    assert(publicResponse.headers.get("access-control-allow-origin") === "*");
+    const privateResponse = await endpoint(async () => ({
+      secret: "must-not-return",
+    }))(req());
+    assert(privateResponse.status === 403);
+    assert(
+      !JSON.stringify(await privateResponse.json()).includes("must-not-return"),
+    );
+    const options = await publicHandler(
+      new Request("https://backend.test", {
+        method: "OPTIONS",
+        headers: { Origin: "http://192.168.1.7:5173" },
+      }),
+    );
+    assert(
+      options.status === 204 &&
+        options.headers.get("access-control-allow-origin") === "*",
+    );
+  },
+);

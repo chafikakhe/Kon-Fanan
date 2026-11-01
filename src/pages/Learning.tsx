@@ -22,6 +22,7 @@ import {
 import { Markdown, RichTextEditor } from "../components/RichText";
 import { Resources } from "../components/Resources";
 import { StudentPacks } from "./Discovery";
+import { CourseVideo, CourseBook } from "../components/CourseMedia";
 import { useApp } from "../app/AppProvider";
 import {
   Panel,
@@ -914,15 +915,11 @@ export function Unavailable({ notFound = false }: { notFound?: boolean }) {
   );
 }
 export function CourseReader() {
-  const { data, user, mutate, demo, fileURL } = useApp(),
+  const { data, user, mutate } = useApp(),
     { id } = useParams();
   const course = data.courses.find((c) => c.id === id);
-  const [tab, setTab] = useState("Le cours"),
-    [play, setPlay] = useState(false),
-    [error, setError] = useState("");
+  const [error, setError] = useState("");
   useEffect(() => {
-    setPlay(false);
-    setTab("Le cours");
     setError("");
     if (course && user?.role === "student")
       void mutate("set_course_progress", {
@@ -966,100 +963,23 @@ export function CourseReader() {
       />
       <div className="reader-layout">
         <div className="stack">
-          <div className="video-player">
-            {play && course.video_id ? (
-              <iframe
-                title={`Vidéo : ${course.title}`}
-                src={
-                  course.video_provider === "youtube"
-                    ? `https://www.youtube-nocookie.com/embed/${course.video_id}?autoplay=1`
-                    : `https://player.vimeo.com/video/${course.video_id}?autoplay=1`
-                }
-                allow="autoplay; fullscreen; picture-in-picture"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            ) : (
-              <>
-                <div className="video-blackboard">
-                  <span>{course.chapter_label}</span>
-                  <strong>
-                    {course.chapter_label === "Géométrie"
-                      ? "a² + b² = c²"
-                      : "3x + 5 = 20"}
-                  </strong>
-                  <small>COMPRENDRE AVANT TOUT.</small>
-                </div>
-                <button
-                  className="video-play"
-                  onClick={() =>
-                    course.video_id
-                      ? setPlay(true)
-                      : setError(
-                          demo
-                            ? "Démonstration : aucune vidéo réelle n’a été configurée pour ce cours."
-                            : "La vidéo de ce cours est indisponible.",
-                        )
-                  }
-                  aria-label="Lire la vidéo"
-                >
-                  <Play size={29} fill="currentColor" />
-                </button>
-                <span className="video-caption">
-                  L’explication de ton professeur
-                </span>
-              </>
-            )}
-          </div>
+          <CourseVideo
+            provider={course.video_provider}
+            id={course.video_id}
+            title={course.title}
+          />
+          <CourseBook key={course.id} courseId={course.id} />
           {error && <Notice>{error}</Notice>}
           <Panel className="lesson-panel">
-            <Tabs
-              options={["Le cours", "Documents"]}
-              value={tab}
-              onChange={setTab}
-            />
-            {tab === "Le cours" ? (
-              <div
-                className="lesson-body"
-                dir={course.content_language === "ar" ? "rtl" : "auto"}
-              >
-                <span className="eyebrow">PRENDS LE TEMPS DE COMPRENDRE</span>
-                <h2>{course.chapter_label || "Les idées essentielles"}</h2>
-                <Markdown>{course.body}</Markdown>
-              </div>
-            ) : (
-              <div className="stack">
-                {data.course_resources
-                  .filter((r) => r.course_id === id)
-                  .map((r) => (
-                    <button
-                      className="document-link"
-                      key={r.id}
-                      onClick={async () => {
-                        try {
-                          const url = await fileURL(r.file_id);
-                          window.open(url, "_blank", "noopener,noreferrer");
-                        } catch (e) {
-                          setError((e as Error).message);
-                        }
-                      }}
-                    >
-                      <FileText size={22} />
-                      {r.label ||
-                        data.files.find((f) => f.id === r.file_id)
-                          ?.original_name}
-                      <ArrowUpRight size={17} />
-                    </button>
-                  ))}
-                {!data.course_resources.some((r) => r.course_id === id) && (
-                  <Empty
-                    title="Pas de document supplémentaire"
-                    description="Tout ce qu’il faut pour commencer est dans le cours."
-                  />
-                )}
-              </div>
-            )}
+            <div
+              className="lesson-body"
+              dir={course.content_language === "ar" ? "rtl" : "auto"}
+            >
+              <span className="eyebrow">PRENDS LE TEMPS DE COMPRENDRE</span>
+              <h2>{course.chapter_label || "Les idées essentielles"}</h2>
+              <Markdown>{course.body}</Markdown>
+            </div>
+            <Resources kind="course" id={course.id} />
           </Panel>
           <div className="actions">
             <Button

@@ -152,9 +152,12 @@ export function cors(req: Request): Record<string, string> {
 export function endpoint(
   handler: (req: Request) => Promise<unknown>,
   methods = ["POST"],
+  options: { publicRead?: boolean } = {},
 ): (req: Request) => Promise<Response> {
   return async (req) => {
-    const headers = cors(req),
+    const headers = options.publicRead
+        ? { ...cors(req), "Access-Control-Allow-Origin": "*" }
+        : cors(req),
       requestId = crypto.randomUUID();
     if (req.method === "OPTIONS")
       return new Response(null, { status: 204, headers });
@@ -162,6 +165,7 @@ export function endpoint(
       if (!methods.includes(req.method))
         throw new AppError("METHOD_NOT_ALLOWED", "Méthode indisponible.", 405);
       if (
+        !options.publicRead &&
         req.headers.get("Origin") &&
         req.headers.get("Origin") !== new URL(appUrl()).origin
       )

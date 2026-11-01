@@ -13,10 +13,13 @@
     "test:sql": "node tests/database.mjs",
     "test:edge": "deno test --config supabase/functions/deno.json --allow-read --allow-env tests/edge/",
     "check:edge": "deno check --config supabase/functions/deno.json supabase/functions/*/index.ts supabase/functions/_shared/*.ts",
-    "format": "prettier --write src tests vite.config.ts playwright.config.ts vitest.config.ts"
+    "format": "prettier --write src tests vite.config.ts playwright.config.ts vitest.config.ts",
+    "postinstall": "node scripts/copy-pdf-assets.mjs",
+    "predev": "node scripts/copy-pdf-assets.mjs",
+    "prebuild": "node scripts/copy-pdf-assets.mjs"
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22.13.0"
   },
   "dependencies": {
     "@fontsource/barlow-condensed": "^5.3.0",
@@ -25,6 +28,7 @@
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
     "lucide-react": "^1.66.0",
+    "pdfjs-dist": "^6.4.299",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-markdown": "^10.1.0",

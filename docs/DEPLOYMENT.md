@@ -5,10 +5,10 @@ Projet : `kon-fanan` (`wzjbamzlwchaqkcoascj`), région `eu-west-1`.
 ## Appliqué via CLI
 
 - Supabase CLI `2.122.0`, projet lié depuis le workspace local.
-- Migrations `0001_core.sql`, `0002_integrations.sql`, `0003_profile_stats.sql`, `0004_bootstrap_admin.sql`, `0005_discovery_packs.sql` appliquées et présentes dans l’historique distant.
+- Migrations `0001_core.sql`, `0002_integrations.sql`, `0003_profile_stats.sql`, `0004_bootstrap_admin.sql`, `0005_discovery_packs.sql`, `0006_public_course_documents.sql` appliquées et présentes dans l’historique distant.
 - Premier administrateur demandé par le propriétaire activé par `0004`, sur son UUID Auth vérifié. Le profil est conservé, le mot de passe reste inchangé et la transition est auditée. La migration est idempotente et ne modifie aucun compte si cette identité est absente d’un autre environnement.
 - `supabase/seed.sql` appliqué : niveaux, matières et année scolaire uniquement. Aucun compte, mot de passe ou travail fictif créé sur le projet.
-- Les 15 Edge Functions sont déployées et actives. Les paramètres `verify_jwt` correspondent à `config.toml`.
+- Les 16 Edge Functions sont déployées et actives. Les paramètres `verify_jwt` correspondent à `config.toml`.
 - Types TypeScript générés depuis la base distante dans `src/lib/database.generated.ts`.
 - Secrets `APP_BASE_URL`, `GOOGLE_OAUTH_REDIRECT_URI`, `GOOGLE_TOKEN_ENCRYPTION_KEY`, `GOOGLE_TOKEN_ENCRYPTION_KEY_VERSION`, `INTEGRATION_WORKER_SECRET` configurés.
 
@@ -21,10 +21,11 @@ Les secrets générés sont conservés dans `supabase/.env.local` avec des permi
 - Schéma `private` non exposé : HTTP 406 / `PGRST106`.
 - Appel du worker sans secret refusé : HTTP 403 / `ACCESS_DENIED`.
 - Appel Google status sans session refusé : HTTP 401 / `AUTH_REQUIRED`.
-- Les 15 fonctions sont `ACTIVE`, aucune fonction attendue absente, aucun écart de configuration JWT.
+- Les 16 fonctions sont `ACTIVE`, aucune fonction attendue absente, aucun écart de configuration JWT.
 - Vérification locale après adaptation du paquet : TypeScript, build et 8 tests Edge réussis. Après ajout des packs : build, 5 tests unitaires, 116 contrôles SQL/RLS et 11 scénarios navigateur distincts réussis (suite de 10 puis contrôles ciblés).
 - Contrôle distant après `0004` : compte ciblé `admin / active`, date d’activation présente et un événement d’audit de bootstrap.
 - Contrôle distant après `0005` : catalogue anonyme HTTP 200, six niveaux et trois packs à 100/180/270 DH au total, cours publié réel visible avec un titre d’exercice ; aucune consigne ni URL live dans la projection. Lecture anonyme des tables `exercises` et `pack_orders` refusée HTTP 401. Aucun achat réel n’a été créé ou activé pendant ces vérifications.
+- Après `0006` : fonction `course-document-url` déployée, `verify_jwt=false` avec contrôles serveur sur la paire cours/fichier. Métadonnées et vrai PDF LOGIQUE répondent HTTP 200 depuis une origine LAN ; contenu `%PDF-` de 511 259 octets, signature 300 secondes, fichier arbitraire refusé HTTP 404. Le navigateur affiche les 17 pages du vrai document avec vidéo intégrée. Validation actuelle : build, 5 tests unitaires, 125 contrôles SQL/RLS, 9 tests Edge et 12 scénarios navigateur réussis. Détails : [COURSE_READER.md](COURSE_READER.md).
 
 ## Adaptation du paquet image
 
