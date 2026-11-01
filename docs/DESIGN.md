@@ -8,6 +8,8 @@ La demande actuelle prime sur les anciens panneaux crème des espaces connectés
 
 Fond crème `#F7F5EC`, vert forêt `#153E32`, menthe `#AFE3C8`, photographies larges et Manrope pour le texte. Les titres de landing utilisent désormais Archivo Black, une fonte large et épaisse aux lettres rapprochées, inspirée du nouveau visuel fourni. Les textes et la palette existants sont conservés. Barlow Condensed reste utilisée ailleurs dans l’application. Les sections suivent la référence : hero, présentation, matières, méthode, défis, étapes et CTA. Aucun témoignage, effectif marketing ou pourcentage de réussite inventé.
 
+La navbar suit aussi le nouveau visuel : quatre liens noirs en capitales monospaces, répartis régulièrement en haut du hero, sans bande de fond ni boutons. Les destinations sont adaptées à l’application : À propos, Les cours, Les packs et Connexion. Les quatre liens restent visibles et utilisables au clavier et sur téléphone, avec des cibles de 44 px de hauteur. Un voile clair progressif en haut de la photo maintient la lisibilité.
+
 ## Espaces connectés
 
 Photographie plein écran avec voile sombre. Panneaux `rgba(28,27,26,.40)`, bordures blanches fines, flou réel 24 px, rayons 20–24 px. Cartes internes très transparentes, texte ivoire, accents menthe et orange limités. Les leçons et les formulaires utilisent une surface plus opaque pour garder le contraste. Le CSS prévoit un fond de remplacement si `backdrop-filter` est absent.

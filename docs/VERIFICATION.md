@@ -33,6 +33,7 @@ Exécution locale : macOS arm64, Node.js 26, Chromium headless via Playwright. L
 - Élargissement du cours et déplacement des exercices sous le contenu : build et cinq scénarios navigateur ciblés réussis. Le test vérifie la largeur du lecteur public et l’ordre visuel des exercices dans les deux parcours.
 - PDF sélectionné dès la création d’exercice, consigne textuelle facultative avec PDF, validation avant publication, document ouvert par l’étudiant autorisé, visiteur orienté vers les packs, envoi interrompu puis repris sans doublon, formats invalides refusés et affichage mobile. Le scénario d’ouverture vérifie le contenu PDF du lien émis ; il ne prétend pas contrôler le lecteur natif de tous les navigateurs.
 - Nouvelle fonte Archivo Black : contrôle des limites du titre et de l’absence de débordement à 360, 390, 768, 1024 et 1440 px, avec captures ordinateur/téléphone.
+- Navbar à quatre liens sur une même ligne, fond transparent : positions et absence de débordement vérifiées à 320, 360, 390, 768 et 1440 px, destinations À propos/Packs/Connexion contrôlées. Le contrôle axe existant des écrans principaux réussit après ce changement.
 
 Ces parcours navigateur utilisent la démonstration isolée. Les règles de production sont vérifiées séparément dans PostgreSQL, pas déduites de l’interface.
 

@@ -7159,3 +7159,86 @@ select option {
     font-size: 5px;
   }
 }
+
+/* Four quiet links float across the hero, following the supplied navbar reference. */
+.landing {
+  position: relative;
+}
+.landing .landing-header {
+  position: absolute;
+  inset: 20px 0 auto;
+  height: auto;
+  padding: 0 7%;
+  display: block;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.landing .landing-header nav {
+  position: static;
+  inset: auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #171c18;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(11px, 1.05vw, 15px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.035em;
+}
+.landing .landing-header nav > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 4px;
+  white-space: nowrap;
+  text-align: center;
+  text-underline-offset: 5px;
+}
+.landing .landing-header nav > a:hover {
+  text-decoration: underline;
+}
+.landing .landing-header nav > a:focus-visible {
+  outline: 2px solid #153e32;
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.landing .landing-hero .hero-shade {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(247, 245, 236, 0.96) 0,
+      rgba(247, 245, 236, 0.8) 70px,
+      rgba(247, 245, 236, 0) 210px
+    ),
+    linear-gradient(0deg, #0c241ce3 0%, #0b291a43 45%, #0c241c3d 100%);
+}
+.landing .hero-content {
+  padding-top: 126px;
+}
+@media (max-width: 760px) {
+  .landing .landing-header {
+    inset: 14px 0 auto;
+    padding: 0 12px;
+  }
+  .landing .landing-header nav {
+    font-size: 11px;
+    gap: 4px;
+    letter-spacing: -0.04em;
+  }
+  .landing .hero-content {
+    padding-top: 106px;
+  }
+  .landing .grad-sticker {
+    top: 84px;
+  }
+}

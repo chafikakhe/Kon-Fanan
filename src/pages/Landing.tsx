@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import "@fontsource/archivo-black/latin-400.css";
-import { useState } from "react";
 import {
   ArrowRight,
   BookOpen,
@@ -9,43 +8,21 @@ import {
   Lightbulb,
   Play,
   GraduationCap,
-  Menu,
-  X,
   Sparkles,
   Video,
 } from "lucide-react";
 import { Logo, ButtonLink } from "../components/ui";
 import { demoEnabled } from "../lib/supabase";
 export default function Landing() {
-  const [menu, setMenu] = useState(false);
   return (
     <div className="landing">
       <header className="landing-header">
-        <Logo />
-        <nav className={menu ? "open" : ""}>
-          <a href="#matieres" onClick={() => setMenu(false)}>
-            Les cours
-          </a>
-          <a href="#methode" onClick={() => setMenu(false)}>
-            La méthode
-          </a>
-          <a href="#challenges" onClick={() => setMenu(false)}>
-            Concours
-          </a>
+        <nav aria-label="Navigation principale">
+          <a href="#apropos">À propos</a>
+          <a href="#matieres">Les cours</a>
+          <Link to="/packs">Les packs</Link>
+          <Link to="/connexion">Connexion</Link>
         </nav>
-        <div className="landing-header-actions">
-          <Link to="/connexion" className="login-link">
-            Se connecter <ArrowRight size={14} />
-          </Link>
-          <ButtonLink to="/inscription">S’inscrire</ButtonLink>
-          <button
-            className="icon-button mobile-only"
-            onClick={() => setMenu(!menu)}
-            aria-label={menu ? "Fermer le menu" : "Ouvrir le menu"}
-          >
-            {menu ? <X /> : <Menu />}
-          </button>
-        </div>
       </header>
       <main>
         <section className="landing-hero">
@@ -92,7 +69,7 @@ export default function Landing() {
             APPRENDRE ENSEMBLE. AVANCER VRAIMENT.
           </div>
         </section>
-        <section className="intro-section landing-section">
+        <section id="apropos" className="intro-section landing-section">
           <div className="intro-copy">
             <span className="editorial-kicker">BIENVENUE CHEZ KON-FANAN</span>
             <h2>
