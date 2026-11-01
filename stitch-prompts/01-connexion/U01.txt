@@ -1,0 +1,11 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN U01 — « Connexion » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+DIRECTION VISUELLE : photographie éducative réelle en plein fond, voile vert forêt #153E32 à environ 55 %, panneau crème translucide rgba(246,244,233,0.90), flou 24 px, bordure blanche fine et coins 24 px. Le verre laisse apparaître doucement la photo. Bouton principal #AFE3C8 avec texte #153E32. Texte courant Manrope 16 px ; titres lisibles et condensés uniquement dans la zone éditoriale. Desktop 1440×1080. Retrouver la palette et le logo de la landing jointe ; une seule composition, sans cadre d'ordinateur.
+
+COMPOSITION : photo plein écran de bibliothèque calme. À gauche, zone éditoriale de 55 % avec logo Kon-fanan en haut et titre blanc « HEUREUX DE TE RETROUVER. ». À droite, panneau glass crème de 440 px, centré verticalement. Aucun menu latéral.
+PANNEAU : titre « Se connecter », sous-texte « Retrouve ton espace Kon-fanan ». Champs Email, Mot de passe avec bouton afficher/masquer ; lien Mot de passe oublié ? ; bouton principal pleine largeur Se connecter ; séparateur discret ; texte Pas encore de compte ? Créer un compte. Labels au-dessus des champs.
+UX : ne pas demander à l'utilisateur de choisir admin/prof/étudiant, le rôle dépend du compte. Sous le bouton, montrer un message d'erreur exemple discret pour identifiants incorrects dans une variante séparée.
+CONTRAINTES : formulaire compact et lisible ; aucune statistique, aucun cours et aucun dashboard sur cette page.
+
+SORTIE ATTENDUE : une maquette nette de cet écran U01, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

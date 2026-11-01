@@ -1,0 +1,19 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN A03 — « Examiner et accepter une admission » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+ESPACE : ADMINISTRATEUR. Desktop 1440×1080 ; scroll vertical si nécessaire. Reprendre la marque et la palette de la landing jointe. Le résultat est une interface d'application photographique en GLASSMORPHISM.
+FOND : photo réaliste de campus contemporain marocain, jardin et architecture en lumière naturelle, composition calme avec de l'espace vide. Photo visible derrière et entre les panneaux ; voile vert #153E32 à 55 %. Pas de grand fond blanc remplaçant la photo.
+CADRE COMMUN : marge extérieure 20 px ; sidebar fixe à x=20, y=20, largeur 232 px ; contenu à x=272, largeur 1148 px ; topbar hauteur 72 px ; espacement entre panneaux 20 px. Sidebar vert sombre translucide rgba(21,62,50,0.84), cartes crème translucide rgba(246,244,233,0.88), flou 24 px, bordures blanches fines, rayons 20 px, ombres légères. Les lecteurs/tableaux peuvent être plus opaques pour la lisibilité.
+TYPO ET ACTIONS : Manrope ; titre de page 28–32 px, sections 20 px, texte 15–16 px, labels 13–14 px. Texte vert forêt sur panneaux clairs, texte ivoire sur sidebar. Bouton principal menthe, hauteur 44 px ; jaune/orange réservés aux accents et statuts. Icônes linéaires cohérentes.
+SIDEBAR : logo Kon-fanan en haut et rôle visible. Liens : Vue d'ensemble ; Admissions ; Classes ; Étudiants ; Professeurs ; Référentiels ; Contenus ; Intégrations ; Journal d'activité. En bas : Notifications, Mon profil, Se déconnecter. Élément actif sur pastille menthe. Topbar : contexte, notifications et avatar, sans recherche globale inutile.
+Données fictives signalées par une discrète mention Démonstration. Toute l'interface conserve des proportions réalistes ; pas de collage, de diagramme technique ni de grille de dashboards miniatures.
+
+NAVIGATION ACTIVE : Admissions. Fil d'Ariane Admissions / Salma El Idrissi. Retour aux demandes.
+HEADER : « Examiner la demande », badge En attente.
+GRILLE 35/65 : panneau gauche Informations de l'étudiante : initiales SE, nom Salma El Idrissi, email de démonstration salma@example.test, email confirmé, date et classe souhaitée.
+PANNEAU DROIT : titre Attribution des accès ; sélecteur Classe finale avec 3ème collège A ; indicateur Places disponibles 13 sur 50 ; liste de matières avec cases à cocher Mathématiques sélectionné, Français non sélectionné, Physique-chimie non sélectionné. Une ligne indique « 1 matière sélectionnée ».
+RÉCAPITULATIF menthe : « Salma rejoindra la classe 3ème collège A avec l'accès aux mathématiques. » Champ Message à l'étudiante facultatif.
+BARRE D'ACTION : Refuser en secondaire ; Accepter l'inscription en primaire. Bouton Accepter désactivé si aucune matière choisie.
+VARIANTES séparées : classe complète avec bouton bloqué ; confirmation d'acceptation ; modale Refuser avec motif public. Aucun choix de philosophie dans cette classe d'exemple.
+
+SORTIE ATTENDUE : une maquette nette de cet écran A03, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

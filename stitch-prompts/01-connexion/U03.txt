@@ -1,0 +1,11 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN U03 — « Mot de passe oublié » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+DIRECTION VISUELLE : photographie éducative réelle en plein fond, voile vert forêt #153E32 à environ 55 %, panneau crème translucide rgba(246,244,233,0.90), flou 24 px, bordure blanche fine et coins 24 px. Le verre laisse apparaître doucement la photo. Bouton principal #AFE3C8 avec texte #153E32. Texte courant Manrope 16 px ; titres lisibles et condensés uniquement dans la zone éditoriale. Desktop 1440×1080. Retrouver la palette et le logo de la landing jointe ; une seule composition, sans cadre d'ordinateur.
+
+COMPOSITION : même univers photo + glass, panneau centré de 460 px, logo au-dessus, retour Se connecter en haut à gauche. Aucun menu de dashboard.
+CONTENU : petite icône clé, titre Mot de passe oublié ?, explication en deux lignes. Un champ Adresse email. Bouton pleine largeur Envoyer le lien. Lien Retour à la connexion.
+VARIANTE SÉPARÉE APRÈS L'ÉCRAN PRINCIPAL : confirmation avec icône enveloppe et message « Si un compte correspond à cette adresse, un email de récupération a été envoyé. » ; bouton Retour à la connexion.
+Le formulaire ne doit pas révéler si une adresse possède un compte. Garder beaucoup d'espace autour du panneau.
+
+SORTIE ATTENDUE : une maquette nette de cet écran U03, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

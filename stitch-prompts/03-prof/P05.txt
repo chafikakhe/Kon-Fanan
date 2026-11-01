@@ -1,0 +1,21 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN P05 — « Éditeur d'un cours » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+ESPACE : PROFESSEUR. Desktop 1440×1080 ; scroll vertical si nécessaire. Reprendre la marque et la palette de la landing jointe. Le résultat est une interface d'application photographique en GLASSMORPHISM.
+FOND : photo réaliste de bureau de professeur avec cahier et livres sur les côtés, bibliothèque en arrière-plan, lumière naturelle. Photo visible derrière et entre les panneaux ; voile vert #153E32 à 55 %. Pas de grand fond blanc remplaçant la photo.
+CADRE COMMUN : marge extérieure 20 px ; sidebar fixe à x=20, y=20, largeur 232 px ; contenu à x=272, largeur 1148 px ; topbar hauteur 72 px ; espacement entre panneaux 20 px. Sidebar vert sombre translucide rgba(21,62,50,0.84), cartes crème translucide rgba(246,244,233,0.88), flou 24 px, bordures blanches fines, rayons 20 px, ombres légères. Les lecteurs/tableaux peuvent être plus opaques pour la lisibilité.
+TYPO ET ACTIONS : Manrope ; titre de page 28–32 px, sections 20 px, texte 15–16 px, labels 13–14 px. Texte vert forêt sur panneaux clairs, texte ivoire sur sidebar. Bouton principal menthe, hauteur 44 px ; jaune/orange réservés aux accents et statuts. Icônes linéaires cohérentes.
+SIDEBAR : logo Kon-fanan en haut et rôle visible. Liens : Vue d'ensemble ; Mes groupes ; Mes cours ; Copies ; Challenges et concours ; Annonces ; Mes séances ; Connexion Google. En bas : Notifications, Mon profil, Se déconnecter. Élément actif sur pastille menthe. Topbar : contexte, notifications et avatar, sans recherche globale inutile.
+Données fictives signalées par une discrète mention Démonstration. Toute l'interface conserve des proportions réalistes ; pas de collage, de diagramme technique ni de grille de dashboards miniatures.
+
+NAVIGATION ACTIVE : Mes cours. Fil d'Ariane Mes cours / Nouveau cours.
+HEADER : « Créer un cours », badge Brouillon ; boutons Prévisualiser, Enregistrer, Publier.
+GRILLE 68/32 : formulaire principal glass à gauche, panneau de publication à droite.
+FORMULAIRE : titre ; groupe pédagogique prérempli 3ème collège A · Mathématiques ; chapitre facultatif ; résumé ; éditeur de contenu riche avec barre d'outils courte.
+SECTION VIDÉO : champ Lien YouTube ou Vimeo, aperçu 16:9 une fois renseigné, message si URL invalide.
+SECTION DOCUMENTS : zone Ajouter un PDF et liste de fichiers avec nom/taille.
+SECTION EXERCICES : liste des exercices liés, nombre, bouton Ajouter un exercice ouvrant P06.
+PANNEAU DROIT : checklist Titre renseigné, Contenu ajouté, Vidéo valide, Au moins un exercice prêt. Bouton Publier bloqué tant que ces exigences ne sont pas satisfaites.
+Conserver les données en cas d'erreur ; afficher Enregistré à 14:32. Ne pas présenter cet écran comme un lecteur étudiant.
+
+SORTIE ATTENDUE : une maquette nette de cet écran P05, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

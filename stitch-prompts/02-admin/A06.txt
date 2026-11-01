@@ -1,0 +1,19 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN A06 — « Détail d'une classe » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+ESPACE : ADMINISTRATEUR. Desktop 1440×1080 ; scroll vertical si nécessaire. Reprendre la marque et la palette de la landing jointe. Le résultat est une interface d'application photographique en GLASSMORPHISM.
+FOND : photo réaliste de campus contemporain marocain, jardin et architecture en lumière naturelle, composition calme avec de l'espace vide. Photo visible derrière et entre les panneaux ; voile vert #153E32 à 55 %. Pas de grand fond blanc remplaçant la photo.
+CADRE COMMUN : marge extérieure 20 px ; sidebar fixe à x=20, y=20, largeur 232 px ; contenu à x=272, largeur 1148 px ; topbar hauteur 72 px ; espacement entre panneaux 20 px. Sidebar vert sombre translucide rgba(21,62,50,0.84), cartes crème translucide rgba(246,244,233,0.88), flou 24 px, bordures blanches fines, rayons 20 px, ombres légères. Les lecteurs/tableaux peuvent être plus opaques pour la lisibilité.
+TYPO ET ACTIONS : Manrope ; titre de page 28–32 px, sections 20 px, texte 15–16 px, labels 13–14 px. Texte vert forêt sur panneaux clairs, texte ivoire sur sidebar. Bouton principal menthe, hauteur 44 px ; jaune/orange réservés aux accents et statuts. Icônes linéaires cohérentes.
+SIDEBAR : logo Kon-fanan en haut et rôle visible. Liens : Vue d'ensemble ; Admissions ; Classes ; Étudiants ; Professeurs ; Référentiels ; Contenus ; Intégrations ; Journal d'activité. En bas : Notifications, Mon profil, Se déconnecter. Élément actif sur pastille menthe. Topbar : contexte, notifications et avatar, sans recherche globale inutile.
+Données fictives signalées par une discrète mention Démonstration. Toute l'interface conserve des proportions réalistes ; pas de collage, de diagramme technique ni de grille de dashboards miniatures.
+
+NAVIGATION ACTIVE : Classes. Fil d'Ariane Classes / 3ème collège A.
+HEADER : « 3ème collège A », sous-texte Collège · 2026–2027 ; boutons Modifier et menu Archiver.
+BANDEAU : 37/50 étudiants ; 3 matières ; 2 professeurs ; 13 places disponibles.
+ONGLETS : Étudiants, Matières et professeurs, Informations.
+ÉCRAN PRINCIPAL : onglet Étudiants avec recherche et tableau Nom, Statut, Matières autorisées, Date d'inscription, Voir le profil. Salma affiche uniquement le badge Mathématiques.
+VARIANTE A06B, écran séparé du même cadre : onglet Matières et professeurs avec trois lignes matière. Ligne Mathématiques : Youssef Amrani et Nadia Berrada comme professeurs affectés ; bouton Affecter un professeur ; retirer une affectation via menu confirmé.
+VARIANTE A06C : modale Affecter un professeur, sélection matière et professeur, résumé et confirmation. Un seul onglet actif par écran généré.
+
+SORTIE ATTENDUE : une maquette nette de cet écran A06, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

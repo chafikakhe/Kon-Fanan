@@ -1,0 +1,5 @@
+ÉCRAN M05 — Admission administrateur mobile. Kon-fanan : adapte uniquement la page A03 en mobile. Conserve son identité, ses données et les permissions du rôle. Produis une seule maquette mobile, sans cadre de téléphone ni écran desktop à côté.
+Écran 390×844, rôle administrateur uniquement. Fond campus voilé et cartes glass cohérentes.
+Header retour Admissions, titre Examiner la demande, badge En attente. Empiler : fiche Salma El Idrissi ; classe souhaitée ; sélecteur Classe finale ; indicateur 13 places disponibles ; cases matières Mathématiques coché, Français et Physique-chimie non cochés ; résumé d'autorisation.
+Action primaire Accepter l'inscription en bas, secondaire Refuser, cibles 44 px minimum. La page peut défiler, mais aucune donnée ne doit être masquée sous les actions.
+Ne jamais faire tenir le formulaire desktop entier dans une miniature. La confirmation ou le motif de refus est un écran/modal séparé.

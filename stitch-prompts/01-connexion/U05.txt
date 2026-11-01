@@ -1,0 +1,12 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN U05 — « Admission en attente » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+DIRECTION VISUELLE : photographie éducative réelle en plein fond, voile vert forêt #153E32 à environ 55 %, panneau crème translucide rgba(246,244,233,0.90), flou 24 px, bordure blanche fine et coins 24 px. Le verre laisse apparaître doucement la photo. Bouton principal #AFE3C8 avec texte #153E32. Texte courant Manrope 16 px ; titres lisibles et condensés uniquement dans la zone éditoriale. Desktop 1440×1080. Retrouver la palette et le logo de la landing jointe ; une seule composition, sans cadre d'ordinateur.
+
+COMPOSITION : photo de campus calme, panneau glass central de 640 px, petit header avec logo et menu du compte. Aucun menu pédagogique.
+CONTENU : badge En attente, titre « Ton inscription est en cours de validation ». Carte récapitulative : Salma El Idrissi ; classe souhaitée 3ème collège A ; année 2026–2027 ; date de demande. Timeline verticale de trois étapes : Email confirmé avec coche ; Demande envoyée avec coche ; Validation de l'administration en cours.
+Sous la timeline : message « Tes cours et tes matières apparaîtront ici après validation. »
+ACTIONS : Actualiser mon statut ; Modifier ma demande en secondaire ; Se déconnecter en lien discret.
+VARIANTE U05B séparée : demande refusée, message administratif neutre et retour au profil. Ne jamais afficher de cours, liste de professeurs ou résultats avant acceptation.
+
+SORTIE ATTENDUE : une maquette nette de cet écran U05, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

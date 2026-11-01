@@ -1,0 +1,8 @@
+{
+  "compilerOptions": { "strict": true, "lib": ["deno.window", "dom", "dom.iterable"] },
+  "nodeModulesDir": "auto",
+  "tasks": {
+    "check": "deno check */index.ts _shared/*.ts",
+    "test": "deno test --allow-read --allow-env ../../tests/edge/"
+  }
+}

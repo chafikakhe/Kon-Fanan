@@ -1,0 +1,47 @@
+{
+  "name": "kon-fanan",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "test:sql": "node tests/database.mjs",
+    "test:edge": "deno test --config supabase/functions/deno.json --allow-read --allow-env tests/edge/",
+    "check:edge": "deno check --config supabase/functions/deno.json supabase/functions/*/index.ts supabase/functions/_shared/*.ts",
+    "format": "prettier --write src tests vite.config.ts playwright.config.ts vitest.config.ts"
+  },
+  "engines": {
+    "node": ">=22.12"
+  },
+  "dependencies": {
+    "@fontsource/barlow-condensed": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
+    "lucide-react": "^1.66.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@electric-sql/pglite": "^0.5.14",
+    "@playwright/test": "^1.64.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "deno": "^2.9.6",
+    "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  }
+}

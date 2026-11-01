@@ -1,0 +1,6 @@
+ÉCRAN M04 — Correction professeur mobile. Kon-fanan : adapte uniquement la page P08 en mobile. Conserve son identité, ses données et les permissions du rôle. Produis une seule maquette mobile, sans cadre de téléphone ni écran desktop à côté.
+Écran 390×844, rôle professeur uniquement. Garder fond photo du professeur, voile vert, panneaux glass clairs.
+Header Retour aux copies, Salma El Idrissi, exercice et V1. Deux onglets larges Copie et Correction.
+Écran principal : Copie actif, grande visionneuse de feuille, zoom et vignettes accessibles. Bouton Aller à la correction au bas du panneau.
+Variante ultérieure indépendante : Correction actif, note /20, commentaire multiligne, Enregistrer le brouillon et Publier.
+Utiliser une disposition séquentielle, pas deux colonnes minuscules. Le bouton Publier apparaît dans le formulaire de correction, pas au-dessus d'une feuille sans contexte. Menu du professeur accessible via le header.

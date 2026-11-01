@@ -1,0 +1,18 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN A01 — « Tableau de bord administrateur » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+ESPACE : ADMINISTRATEUR. Desktop 1440×1080 ; scroll vertical si nécessaire. Reprendre la marque et la palette de la landing jointe. Le résultat est une interface d'application photographique en GLASSMORPHISM.
+FOND : photo réaliste de campus contemporain marocain, jardin et architecture en lumière naturelle, composition calme avec de l'espace vide. Photo visible derrière et entre les panneaux ; voile vert #153E32 à 55 %. Pas de grand fond blanc remplaçant la photo.
+CADRE COMMUN : marge extérieure 20 px ; sidebar fixe à x=20, y=20, largeur 232 px ; contenu à x=272, largeur 1148 px ; topbar hauteur 72 px ; espacement entre panneaux 20 px. Sidebar vert sombre translucide rgba(21,62,50,0.84), cartes crème translucide rgba(246,244,233,0.88), flou 24 px, bordures blanches fines, rayons 20 px, ombres légères. Les lecteurs/tableaux peuvent être plus opaques pour la lisibilité.
+TYPO ET ACTIONS : Manrope ; titre de page 28–32 px, sections 20 px, texte 15–16 px, labels 13–14 px. Texte vert forêt sur panneaux clairs, texte ivoire sur sidebar. Bouton principal menthe, hauteur 44 px ; jaune/orange réservés aux accents et statuts. Icônes linéaires cohérentes.
+SIDEBAR : logo Kon-fanan en haut et rôle visible. Liens : Vue d'ensemble ; Admissions ; Classes ; Étudiants ; Professeurs ; Référentiels ; Contenus ; Intégrations ; Journal d'activité. En bas : Notifications, Mon profil, Se déconnecter. Élément actif sur pastille menthe. Topbar : contexte, notifications et avatar, sans recherche globale inutile.
+Données fictives signalées par une discrète mention Démonstration. Toute l'interface conserve des proportions réalistes ; pas de collage, de diagramme technique ni de grille de dashboards miniatures.
+
+NAVIGATION ACTIVE : Vue d'ensemble.
+HEADER : « Vue d'ensemble », sous-titre Année scolaire 2026–2027 ; sélecteur d'année et bouton menthe Créer une classe.
+LIGNE 1 : quatre cartes glass compactes et de même largeur : 128 Étudiants actifs ; 6 Professeurs ; 4 Classes ; 8 Demandes en attente. Données de démonstration, pas de pourcentages décoratifs.
+LIGNE 2 : grille 65/35. À gauche tableau Demandes récentes : Étudiant, Classe souhaitée, Date, bouton Examiner. Exemples Salma El Idrissi, Adam Bennani, Lina Alaoui. À droite panneau Actions rapides : Inviter un professeur, Ajouter une matière, Gérer les accès.
+LIGNE 3 : panneau Classes et effectifs : 3ème collège A 37/50 ; 2ème collège B 44/50 ; 1ère lycée A 47/50 ; 3ème lycée B 0/30, avec barres fines de capacité. Panneau secondaire « À vérifier » avec une connexion Google à rétablir.
+Mettre en avant les admissions, pas un graphique financier. Garder le fond photo visible dans les gouttières.
+
+SORTIE ATTENDUE : une maquette nette de cet écran A01, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

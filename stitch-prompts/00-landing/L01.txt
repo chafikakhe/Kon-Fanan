@@ -1,0 +1,18 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN L01 — « Landing page » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+RÉFÉRENCE : l'image de landing Kon-fanan jointe. Reprendre son rythme éditorial, son fond crème, ses grandes photos et ses titres condensés. Pour cette page publique, garder les sections crème, plutôt que le shell glass des dashboards.
+FORMAT : une seule page desktop 1440 px de large, environ 4000 px de haut, scroll vertical.
+ORDRE EXACT :
+1. Header 80 px : logo à gauche ; Les cours, La méthode, Concours au centre ; Se connecter et bouton menthe S'inscrire à droite.
+2. Hero photo d'étudiants marocains travaillant ensemble, hauteur environ 650 px. Voile vert. Titre blanc énorme « APPRENDS. COMPRENDS. RÉUSSIS. », sous-titre « Du collège au lycée, avance à ton rythme. », bouton Découvrir les cours. Deux petits stickers livre/soleil.
+3. Section 50/50 : texte « TON AVENIR COMMENCE ICI. » à gauche, photo de soutien scolaire arrondie à droite.
+4. Matières : titre centré, quatre icônes Mathématiques, Physique-chimie, Français, Philosophie.
+5. Trois cartes photographiques sous « LA MÉTHODE KON-FANAN » : Comprendre en vidéo, S'entraîner à son rythme, Avancer avec son prof.
+6. Bande vert forêt « RELÈVE LE DÉFI. », fond de fines courbes et montage de photos.
+7. Trois étapes : Crée ton compte, Retrouve tes matières, Apprends et pratique.
+8. Grand CTA photographique « PRÊT À FAIRE LE DÉCLIC ? », bouton Créer mon compte.
+9. Footer crème simple.
+Ne pas inclure de statistiques, témoignages ou coordonnées inventés. Produire la landing complète uniquement.
+
+SORTIE ATTENDUE : une maquette nette de cet écran L01, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

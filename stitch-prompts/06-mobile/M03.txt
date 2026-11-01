@@ -1,0 +1,5 @@
+ÉCRAN M03 — Dépôt de copie mobile. Kon-fanan : adapte uniquement la page E05 en mobile. Conserve son identité, ses données et les permissions du rôle. Produis une seule maquette mobile, sans cadre de téléphone ni écran desktop à côté.
+Écran 390×844, une seule vue mobile. Photo discrète et cartes glass claires. Header retour et titre Exercice 1, badge À rendre.
+Empiler Énoncé, puis Mon travail. Pour la capture principale, montrer le panneau Mon travail ouvert : boutons Prendre une photo et Choisir des fichiers, trois vignettes en grille, retirer accessible, tailles affichées. Indiquer 5 fichiers maximum, total 30 Mo et formats autorisés.
+Commentaire facultatif sous les fichiers. Barre d'action basse avec Enregistrer et Envoyer mon travail, en laissant le contenu défilable au-dessus. Sur cet écran de tâche, la barre d'envoi remplace la navigation basse générale afin d'éviter deux barres superposées.
+La variante Envoi réussi est une autre génération. Pas de faux envoi présenté comme accompli dans l'état brouillon.

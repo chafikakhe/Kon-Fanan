@@ -1,0 +1,12 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN U02 — « Inscription étudiant » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+DIRECTION VISUELLE : photographie éducative réelle en plein fond, voile vert forêt #153E32 à environ 55 %, panneau crème translucide rgba(246,244,233,0.90), flou 24 px, bordure blanche fine et coins 24 px. Le verre laisse apparaître doucement la photo. Bouton principal #AFE3C8 avec texte #153E32. Texte courant Manrope 16 px ; titres lisibles et condensés uniquement dans la zone éditoriale. Desktop 1440×1080. Retrouver la palette et le logo de la landing jointe ; une seule composition, sans cadre d'ordinateur.
+
+COMPOSITION : même photo et même disposition que la connexion, pour créer une continuité. Texte gauche « TON PARCOURS COMMENCE ICI. ». Panneau glass à droite de 480 px ; légère hauteur supplémentaire avec scroll si nécessaire.
+FORMULAIRE : titre Créer mon compte ; champs Nom complet, Adresse email, Mot de passe, Confirmer le mot de passe et Classe souhaitée. Dans la liste classe, afficher « 3ème collège A — 2026–2027 » comme exemple. Indicateur simple des exigences de mot de passe sous le champ. Case d'acceptation des conditions ; bouton Créer mon compte ; lien Déjà inscrit ? Se connecter.
+ENCART D'INFORMATION : « Ton inscription sera validée par l'administration. Tes matières seront attribuées après acceptation. »
+VARIANTE À DESSINER ENSUITE : confirmation « Vérifie ton adresse email », email masqué, Renvoyer le lien avec délai, Modifier mon adresse.
+Ne pas proposer la création libre d'un compte professeur ou administrateur.
+
+SORTIE ATTENDUE : une maquette nette de cet écran U02, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

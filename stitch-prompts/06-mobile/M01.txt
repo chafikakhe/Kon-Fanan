@@ -1,0 +1,6 @@
+ÉCRAN M01 — Accueil étudiant mobile. Kon-fanan : adapte uniquement la page E01 en mobile. Conserve son identité, ses données et les permissions du rôle. Produis une seule maquette mobile, sans cadre de téléphone ni écran desktop à côté.
+Écran 390×844, une seule vue mobile. Conserver photo de bibliothèque plein fond et voile vert, cartes glass crème lisibles, coins 18 px. Marges 16 px. Pas de sidebar desktop.
+Header compact logo Kon-fanan, cloche et avatar SE. Salutation Bonjour Salma ; classe 3ème collège A.
+Empiler : carte Continuer mon cours avec titre Équations, miniature 16:9 et Reprendre ; carte Prochaine séance ; carte Travail à rendre. La matière Mathématiques apparaît ensuite dans le scroll, sans inventer d'autres accès.
+Navigation fixe basse : Accueil, Matières, Travaux, Séances, Plus ; Accueil actif. Plus ouvre le reste des liens dans une variante séparée.
+Texte courant 16 px, cibles tactiles 44 px minimum, aucun tableau compressé ou zoom nécessaire.

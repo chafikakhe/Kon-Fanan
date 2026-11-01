@@ -1,0 +1,63 @@
+project_id = "kon-fanan"
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+[db]
+port = 54322
+major_version = 17
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+[studio]
+enabled = true
+port = 54323
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173/auth/callback", "http://localhost:5173/nouveau-mot-de-passe"]
+jwt_expiry = 3600
+minimum_password_length = 12
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+double_confirm_changes = true
+[storage]
+enabled = true
+file_size_limit = "20MiB"
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+[functions.files-prepare]
+verify_jwt = true
+[functions.files-finalize]
+verify_jwt = true
+static_files = ["./functions/_shared/magick.wasm.br"]
+[functions.files-read-url]
+verify_jwt = true
+[functions.files-delete]
+verify_jwt = true
+[functions.teacher-invite]
+verify_jwt = true
+[functions.google-oauth-start]
+verify_jwt = true
+[functions.google-status]
+verify_jwt = true
+[functions.google-disconnect]
+verify_jwt = true
+[functions.google-oauth-redirect]
+verify_jwt = false
+[functions.google-oauth-callback]
+verify_jwt = false
+[functions.meetings-publish]
+verify_jwt = true
+[functions.meetings-update]
+verify_jwt = true
+[functions.meetings-cancel]
+verify_jwt = true
+[functions.meetings-join]
+verify_jwt = true
+[functions.integration-worker]
+verify_jwt = false

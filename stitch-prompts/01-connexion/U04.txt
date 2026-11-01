@@ -1,0 +1,11 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN U04 — « Nouveau mot de passe » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+DIRECTION VISUELLE : photographie éducative réelle en plein fond, voile vert forêt #153E32 à environ 55 %, panneau crème translucide rgba(246,244,233,0.90), flou 24 px, bordure blanche fine et coins 24 px. Le verre laisse apparaître doucement la photo. Bouton principal #AFE3C8 avec texte #153E32. Texte courant Manrope 16 px ; titres lisibles et condensés uniquement dans la zone éditoriale. Desktop 1440×1080. Retrouver la palette et le logo de la landing jointe ; une seule composition, sans cadre d'ordinateur.
+
+COMPOSITION : panneau glass centré de 460 px sur la photo de bibliothèque voilée, logo Kon-fanan.
+CONTENU : titre Définir un nouveau mot de passe ; champs Nouveau mot de passe et Confirmer le mot de passe ; icônes afficher/masquer ; critères courts visibles ; bouton Enregistrer mon mot de passe.
+ÉTAT PRINCIPAL : formulaire prêt à remplir.
+ÉTATS À GÉNÉRER COMME VARIANTES INDÉPENDANTES : succès avec bouton Se connecter ; lien expiré avec bouton Demander un nouveau lien. Aucun dashboard, aucune sidebar et aucun autre formulaire dans ce même écran.
+
+SORTIE ATTENDUE : une maquette nette de cet écran U04, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

@@ -1,0 +1,18 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN E13 — « Détail d'une séance et accès Meet » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+ESPACE : ÉTUDIANT. Desktop 1440×1080 ; scroll vertical si nécessaire. Reprendre la marque et la palette de la landing jointe. Le résultat est une interface d'application photographique en GLASSMORPHISM.
+FOND : photo réaliste de bibliothèque et espace de travail scolaire lumineux, sujets et détails sur les bords, centre calme. Photo visible derrière et entre les panneaux ; voile vert #153E32 à 55 %. Pas de grand fond blanc remplaçant la photo.
+CADRE COMMUN : marge extérieure 20 px ; sidebar fixe à x=20, y=20, largeur 232 px ; contenu à x=272, largeur 1148 px ; topbar hauteur 72 px ; espacement entre panneaux 20 px. Sidebar vert sombre translucide rgba(21,62,50,0.84), cartes crème translucide rgba(246,244,233,0.88), flou 24 px, bordures blanches fines, rayons 20 px, ombres légères. Les lecteurs/tableaux peuvent être plus opaques pour la lisibilité.
+TYPO ET ACTIONS : Manrope ; titre de page 28–32 px, sections 20 px, texte 15–16 px, labels 13–14 px. Texte vert forêt sur panneaux clairs, texte ivoire sur sidebar. Bouton principal menthe, hauteur 44 px ; jaune/orange réservés aux accents et statuts. Icônes linéaires cohérentes.
+SIDEBAR : logo Kon-fanan en haut et rôle visible. Liens : Mon espace ; Mes matières ; Mes travaux ; Challenges et concours ; Annonces ; Mes séances. En bas : Notifications, Mon profil, Se déconnecter. Élément actif sur pastille menthe. Topbar : contexte, notifications et avatar, sans recherche globale inutile.
+Données fictives signalées par une discrète mention Démonstration. Toute l'interface conserve des proportions réalistes ; pas de collage, de diagramme technique ni de grille de dashboards miniatures.
+
+NAVIGATION ACTIVE : Mes séances. Fil d'Ariane Mes séances / Révision des équations.
+HEADER : titre de séance et badge Commence bientôt.
+GRILLE 65/35 : à gauche informations date, heure début/fin, fuseau, professeur, matière, classe, description et lien vers le cours associé. À droite carte Rejoindre le cours avec icône vidéo, heure et grand bouton menthe Ouvrir Google Meet ; aide « La séance s'ouvre dans un nouvel onglet ».
+Ne pas dessiner une salle de visioconférence intégrée ni une grille de webcams : Meet s'ouvre à l'extérieur de Kon-fanan.
+VARIANTES distinctes : trop tôt avec bouton désactivé et heure d'ouverture ; séance annulée ; accès retiré avec retour vers Mes matières. Aucun faux lien cliquable si la séance n'est pas prête.
+Aucun bouton Modifier, Annuler, Copier les tokens ou gérer l'agenda du professeur.
+
+SORTIE ATTENDUE : une maquette nette de cet écran E13, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

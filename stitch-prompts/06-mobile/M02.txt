@@ -1,0 +1,5 @@
+ÉCRAN M02 — Lecture de cours mobile. Kon-fanan : adapte uniquement la page E04 en mobile. Conserve son identité, ses données et les permissions du rôle. Produis une seule maquette mobile, sans cadre de téléphone ni écran desktop à côté.
+Écran 390×844, une seule page mobile avec scroll. Fond photo et glass identiques à E01 mobile. Header Retour, Mathématiques, cloche.
+Titre Les équations du premier degré, nom du professeur et lecteur vidéo 16:9 pleine largeur utile. Sous le lecteur, onglets Le cours et Documents. Corps de leçon dans un panneau crème presque opaque, texte 16 px.
+Les exercices sont accessibles par un bloc Exercices du cours avec trois lignes compactes sous la leçon, pas une colonne latérale miniaturisée. Bouton Marquer comme terminé à la fin.
+Conserver la navigation basse, laisser assez d'espace pour qu'elle ne masque aucun contenu. Ne pas dessiner une version desktop réduite.

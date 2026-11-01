@@ -1,0 +1,11 @@
+CONÇOIS UNIQUEMENT L'ÉCRAN U06 — « Compte suspendu » pour Kon-fanan, plateforme éducative collège/lycée. Produis une maquette UI haute fidélité, en français, prête à servir de référence à un prototype. Une page par réponse : écran principal uniquement, pas de planche de plusieurs écrans. Les variantes mentionnées sont des demandes ultérieures séparées. Ne développe pas de backend dans cette demande.
+
+DIRECTION VISUELLE : photographie éducative réelle en plein fond, voile vert forêt #153E32 à environ 55 %, panneau crème translucide rgba(246,244,233,0.90), flou 24 px, bordure blanche fine et coins 24 px. Le verre laisse apparaître doucement la photo. Bouton principal #AFE3C8 avec texte #153E32. Texte courant Manrope 16 px ; titres lisibles et condensés uniquement dans la zone éditoriale. Desktop 1440×1080. Retrouver la palette et le logo de la landing jointe ; une seule composition, sans cadre d'ordinateur.
+
+COMPOSITION : même cadre photo/glass que l'attente, panneau central 600 px et header minimal. Ton calme, sans grande alarme rouge.
+CONTENU : icône accès interrompu, badge Accès suspendu, titre « Ton accès est temporairement suspendu ». Explication « Contacte l'administration pour connaître les prochaines étapes. » Nom et classe de Salma, sans détails internes de modération.
+ACTIONS : Consulter mon profil et Se déconnecter. Un contact administratif peut être indiqué uniquement sous forme de lien configuré, jamais de faux téléphone ou email.
+Ne montrer ni matières, ni liens Meet, ni contenu pédagogique derrière le panneau.
+
+SORTIE ATTENDUE : une maquette nette de cet écran U06, à l'échelle d'une vraie interface, avec l'état principal décrit. Générer les variantes seulement dans une demande suivante, une à une.
+

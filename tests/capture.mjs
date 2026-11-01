@@ -1,0 +1,6 @@
+import {chromium} from '@playwright/test';
+const b=await chromium.launch();const p=await b.newPage({viewport:{width:1440,height:1000}});const base='http://127.0.0.1:5279';const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+async function capture(path,name,width=1440,height=1000){await p.setViewportSize({width,height});await p.goto(base+path);await p.locator('h1').first().waitFor();await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(250);await p.screenshot({path:`screenshots/${name}.png`});}
+await capture('/','landing-desktop');await capture('/','landing-mobile',390,844);await capture('/connexion','connexion-mobile',390,844);
+for(const role of ['student','teacher','admin']){await p.evaluate(r=>sessionStorage.setItem('kf-demo-role',r),role);const root=role==='student'?'/etudiant':role==='teacher'?'/prof':'/admin';await capture(root,`${role}-desktop`);await capture(root,`${role}-mobile`,390,844);if(role==='student'){await capture(`/etudiant/cours/${id(110)}`,'cours-mobile',390,844);await capture(`/etudiant/exercices/${id(120)}`,'depot-mobile',390,844);}if(role==='teacher')await capture(`/prof/copies/${id(131)}`,'correction-mobile',390,844);if(role==='admin')await capture(`/admin/admissions/${id(100)}`,'admission-mobile',390,844);}
+await b.close();console.log('13 captures enregistrées dans screenshots/');

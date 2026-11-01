@@ -1,0 +1,31 @@
+PROJET : Kon-fanan, plateforme éducative pour le collège et le lycée.
+MISSION : concevoir l'écran précis demandé ensuite. Une seule page complète par demande. Les écrans des trois rôles doivent rester distincts.
+
+L'image jointe définit la marque : crème #F6F4E9, vert forêt #153E32, menthe #AFE3C8, jaune #FFD633 et orange #EF522A. Landing éditoriale avec grandes photos et titres condensés. Les espaces connectés utilisent cette marque dans une interface photographique en glassmorphism.
+
+GLASSMORPHISM À RESPECTER :
+- Une vraie photo calme couvre tout le viewport, avec un voile vert sombre.
+- La photo reste visible dans les marges, entre les cartes et doucement à travers le verre.
+- Sidebar sombre translucide, topbar et panneaux glass crème translucides.
+- Flou de 24 px, bordure blanche fine, ombre légère et coins de 20 px.
+- Texte vert forêt sur cartes claires, texte ivoire sur sidebar.
+- Les documents, textes longs et tableaux ont un fond assez opaque pour être lus confortablement.
+- Les cartes de verre sont des surfaces de travail structurées ; pas des bulles décoratives dispersées.
+
+DESKTOP 1440 PX :
+marges 20 px ; sidebar 232 px ; espace de 20 px ; contenu 1148 px.
+Sidebar et topbar gardent la même géométrie d'une page à l'autre.
+Manrope pour l'application : titres 28–32 px, corps 15–16 px.
+Barlow Condensed ExtraBold pour les grandes accroches de landing.
+Un bouton principal menthe identifiable par tâche.
+Icônes linéaires simples, espacements réguliers et hiérarchie nette.
+
+ADMIN : gérer classes, professeurs, admissions et accès matière.
+PROF : publier contenus, corriger copies, annoncer séances.
+ÉTUDIANT : consulter ses matières, travailler et envoyer ses copies.
+Chaque rôle possède sa propre navigation et ses propres actions.
+
+Les nombres et personnes d'exemple sont des données de démonstration.
+Interface en français, avec les accents corrects et des libellés concrets.
+Le prochain prompt décrit UNE page : rends seulement cette page.
+
