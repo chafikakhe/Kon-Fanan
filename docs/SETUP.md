@@ -22,6 +22,8 @@ Dans Auth, définir `Site URL` sur le domaine de l’application. Vérifier l’
 
 Si vous changez le port de développement, adaptez aussi `VITE_APP_URL`, `APP_BASE_URL` et les URLs autorisées dans Auth. Les origines doivent correspondre exactement (protocole, nom d’hôte et port).
 
+Pour utiliser aussi l’adresse réseau locale, renseigner `APP_ALLOWED_ORIGINS` côté Edge avec les origines supplémentaires exactes, séparées par des virgules. Exemple : `http://127.0.0.1:5173,http://192.168.1.7:5173`. Conserver `APP_BASE_URL` comme URL canonique pour les redirections. Ajouter une origine ne remplace pas l’authentification ni les droits serveur. Ne pas utiliser de wildcard ; mettre à jour la liste si l’adresse LAN change. Déployer les fonctions après modification du helper CORS et appliquer la configuration avec `supabase secrets set`.
+
 ## 2. Premier administrateur
 
 Créer un compte par Supabase Auth avec une adresse contrôlée et confirmer son email. Récupérer son UUID dans Auth. Exécuter depuis le SQL Editor administrateur, en remplaçant uniquement l’UUID ci-dessous :

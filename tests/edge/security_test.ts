@@ -311,3 +311,64 @@ Deno.test(
     );
   },
 );
+
+Deno.test(
+  "origines configurées autorisées exactement pour les uploads, autres origines refusées",
+  async () => {
+    const previous = Deno.env.get("APP_ALLOWED_ORIGINS");
+    Deno.env.set("APP_BASE_URL", "https://konfanan.test");
+    Deno.env.set(
+      "APP_ALLOWED_ORIGINS",
+      "http://192.168.1.7:5173, http://127.0.0.1:5173,*,invalid",
+    );
+    try {
+      const handler = endpoint(async () => ({ ok: true }));
+      for (const origin of [
+        "https://konfanan.test",
+        "http://192.168.1.7:5173",
+        "http://127.0.0.1:5173",
+      ]) {
+        const options = await handler(
+          new Request("https://backend.test", {
+            method: "OPTIONS",
+            headers: { Origin: origin },
+          }),
+        );
+        assert(
+          options.status === 204 &&
+            options.headers.get("access-control-allow-origin") === origin,
+        );
+        const response = await handler(
+          new Request("https://backend.test", {
+            method: "POST",
+            headers: { Origin: origin },
+          }),
+        );
+        assert(
+          response.status === 200 &&
+            response.headers.get("access-control-allow-origin") === origin,
+        );
+      }
+      for (const origin of [
+        "http://192.168.1.7:5174",
+        "http://192.168.1.7.evil.test:5173",
+        "https://attacker.test",
+        "null",
+      ]) {
+        const response = await handler(
+          new Request("https://backend.test", {
+            method: "POST",
+            headers: { Origin: origin },
+          }),
+        );
+        assert(
+          response.status === 403 &&
+            !response.headers.has("access-control-allow-origin"),
+        );
+      }
+    } finally {
+      if (previous === undefined) Deno.env.delete("APP_ALLOWED_ORIGINS");
+      else Deno.env.set("APP_ALLOWED_ORIGINS", previous);
+    }
+  },
+);

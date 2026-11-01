@@ -15,3 +15,4 @@ playwright-report/
 supabase/functions/node_modules/
 supabase/.env.local
 public/pdfjs/
+public/.pdfjs-assets.lock/

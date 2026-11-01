@@ -6,7 +6,7 @@ Le composant commun `CourseVideo` utilise les vidéos YouTube/Vimeo déjà confi
 
 Le lecteur `PdfBook` utilise [PDF.js](https://mozilla.github.io/pdf.js/examples/), chargé seulement lorsqu’un PDF est disponible. Il affiche deux pages quand l’espace le permet, une page sur téléphone, des boutons précédent/suivant, un accès direct à une page, le zoom et un affichage agrandi avec fermeture par Échap et focus retenu dans le lecteur. Le PDF original peut aussi être ouvert séparément. Seules les pages visibles sont rendues en canvas, avec une résolution bornée pour les téléphones ; les rendus obsolètes et le worker sont annulés à la fermeture. Les actions/annotations interactives du PDF ne sont pas exécutées par le lecteur.
 
-Le worker PDF.js, les fontes, les CMaps et les codecs sont servis par l’application, sans CDN. `scripts/copy-pdf-assets.mjs` les prépare après `npm install`/`npm ci`, avant `dev` et avant `build`. `public/pdfjs/` est généré et ignoré par Git ; les ressources et leurs licences sont copiées dans `dist` par Vite. Node.js ≥ 22.13 est requis par PDF.js.
+Le worker PDF.js, les fontes, les CMaps et les codecs sont servis par l’application, sans CDN. `scripts/copy-pdf-assets.mjs` les prépare après `npm install`/`npm ci`, avant `dev` et avant `build`. Un marqueur de version et un verrou empêchent deux démarrages simultanés de réécrire les mêmes fichiers. `public/pdfjs/` est généré et ignoré par Git ; les ressources et leurs licences sont copiées dans `dist` par Vite. Node.js ≥ 22.13 est requis par PDF.js.
 
 ## Accès public limité aux PDF de cours publiés
 

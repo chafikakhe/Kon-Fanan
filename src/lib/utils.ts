@@ -91,6 +91,8 @@ export function validateFiles(files: File[]): string | null {
 }
 export function errorMessage(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
+  if (/failed to send a request to the edge function/i.test(raw))
+    return "Le service est inaccessible. Vérifie la connexion et l’adresse autorisée de l’application, puis réessaie.";
   const pairs: Record<string, string> = {
     PACK_UNAVAILABLE: "Ce pack n’est plus disponible. Choisis un autre pack.",
     PAYMENT_REFERENCE_REQUIRED:

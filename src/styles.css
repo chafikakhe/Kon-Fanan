@@ -7072,3 +7072,90 @@ select option {
 .discovery-course-page .discovery-footer {
   max-width: none;
 }
+
+.exercise-pdf-upload {
+  margin: 20px 0;
+}
+.exercise-pdf-upload .resource-row {
+  flex-wrap: wrap;
+}
+.exercise-pdf-upload .resource-row > span {
+  flex: 1 1 160px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.exercise-pdf-upload input[type="file"] {
+  max-width: 100%;
+}
+
+/* Broad, heavy display type inspired by the supplied lettering reference. */
+.landing .hero-content {
+  width: 100%;
+  max-width: 1440px;
+  padding: 48px 24px 56px;
+}
+.landing .hero-content h1 {
+  font-family: "Archivo Black", "Manrope", sans-serif;
+  font-weight: 400;
+  font-size: clamp(42px, 12vw, 160px);
+  line-height: 0.88;
+  letter-spacing: -0.065em;
+  white-space: nowrap;
+}
+.landing .hero-kicker {
+  margin-bottom: 28px;
+}
+.landing h2 {
+  font-family: "Archivo Black", "Manrope", sans-serif;
+  font-weight: 400;
+  font-size: clamp(30px, 4.1vw, 58px);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+}
+.landing .sun-sticker {
+  left: 3%;
+  top: auto;
+  bottom: 36px;
+  width: 72px;
+  height: 72px;
+}
+.landing .grad-sticker {
+  right: 3%;
+  top: 40px;
+  width: 76px;
+  height: 76px;
+}
+@media (max-width: 760px) {
+  .landing .hero-content {
+    padding: 52px 18px 64px;
+  }
+  .landing .hero-content h1 {
+    font-size: 11.8vw;
+    letter-spacing: -0.065em;
+    line-height: 0.94;
+  }
+  .landing h2 {
+    font-size: clamp(28px, 6.7vw, 44px);
+  }
+  .landing .sun-sticker {
+    width: 48px;
+    height: 48px;
+    left: 16px;
+    bottom: 20px;
+  }
+  .landing .sun-sticker > svg {
+    width: 26px;
+  }
+  .landing .grad-sticker {
+    width: 54px;
+    height: 54px;
+    right: 16px;
+    top: 22px;
+  }
+  .landing .grad-sticker > svg {
+    width: 25px;
+  }
+  .landing .grad-sticker small {
+    font-size: 5px;
+  }
+}

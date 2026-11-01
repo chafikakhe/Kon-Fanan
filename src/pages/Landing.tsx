@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import "@fontsource/archivo-black/latin-400.css";
 import { useState } from "react";
 import {
   ArrowRight,

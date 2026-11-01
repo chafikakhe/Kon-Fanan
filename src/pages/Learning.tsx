@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
@@ -1330,6 +1330,7 @@ function CourseDocuments({ id }: { id?: string }) {
               setError((e as Error).message);
             } finally {
               setBusy(false);
+              e.target.value = "";
             }
           }}
         />
@@ -1339,12 +1340,38 @@ function CourseDocuments({ id }: { id?: string }) {
   );
 }
 export function ExerciseEditor() {
-  const { data, mutate, notify } = useApp(),
+  const { data, mutate, notify, upload } = useApp(),
     { courseId, exerciseId } = useParams(),
     navigate = useNavigate();
   const course = data.courses.find((c) => c.id === courseId),
     e = data.exercises.find((e) => e.id === exerciseId);
-  if (!course || (exerciseId && exerciseId !== "nouveau" && !e))
+  const [saved, setSaved] = useState<Exercise | undefined>(undefined),
+    [pdf, setPdf] = useState<File | null>(null),
+    [uploadedPDF, setUploadedPDF] = useState(false),
+    [pdfError, setPdfError] = useState(""),
+    [progress, setProgress] = useState<number | null>(null);
+  const pdfInput = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    setSaved(undefined);
+    setPdf(null);
+    setUploadedPDF(false);
+    setPdfError("");
+    setProgress(null);
+  }, [courseId, exerciseId]);
+  const current = saved || e;
+  const hasPDF =
+    uploadedPDF ||
+    data.files.some(
+      (f) =>
+        f.target_type === "exercise" &&
+        f.target_id === current?.id &&
+        f.status === "ready" &&
+        f.mime_type === "application/pdf",
+    );
+  const locked = data.submissions.some(
+    (s) => s.exercise_id === current?.id && s.status !== "draft",
+  );
+  if (!course || (exerciseId && exerciseId !== "nouveau" && !current))
     return <Unavailable />;
   return (
     <>
@@ -1358,23 +1385,51 @@ export function ExerciseEditor() {
         <AsyncForm
           onSubmit={async (f) => {
             const fd = new FormData(f);
-            await mutate<Exercise>("save_exercise", {
-              p_id: e?.id || null,
-              p_expected_version: e?.row_version || null,
-              p_data: {
-                course_id: course.id,
-                title: fd.get("title"),
-                instructions: fd.get("instructions"),
-                max_score: Number(fd.get("score")),
-                difficulty: fd.get("difficulty"),
-                due_at: fd.get("due")
-                  ? localToISO(String(fd.get("due")))
-                  : null,
-                allow_late: fd.get("late") === "on",
-                status: fd.get("publish") === "on" ? "published" : "draft",
-                position: 1,
-              },
+            const payload = {
+              course_id: course.id,
+              title: fd.get("title"),
+              instructions:
+                String(fd.get("instructions") || "").trim() ||
+                (pdf || hasPDF
+                  ? "L’énoncé de cet exercice est disponible dans le PDF joint."
+                  : ""),
+              max_score: Number(fd.get("score")),
+              difficulty: fd.get("difficulty"),
+              due_at: fd.get("due") ? localToISO(String(fd.get("due"))) : null,
+              allow_late: fd.get("late") === "on",
+              status: fd.get("publish") === "on" ? "published" : "draft",
+              position: current?.position ?? 1,
+            };
+            let target = current;
+            if (pdf) {
+              if (!target) {
+                target = await mutate<Exercise>("save_exercise", {
+                  p_id: null,
+                  p_expected_version: null,
+                  p_data: {
+                    ...payload,
+                    instructions: String(fd.get("instructions") || "").trim(),
+                    status: "draft",
+                  },
+                });
+                setSaved(target);
+              }
+              setProgress(0);
+              try {
+                await upload(pdf, "exercise", target.id, setProgress);
+                setUploadedPDF(true);
+                setPdf(null);
+                if (pdfInput.current) pdfInput.current.value = "";
+              } finally {
+                setProgress(null);
+              }
+            }
+            const result = await mutate<Exercise>("save_exercise", {
+              p_id: target?.id || null,
+              p_expected_version: target?.row_version || null,
+              p_data: payload,
             });
+            setSaved(result);
             notify("L’exercice a été enregistré.");
             navigate(`/prof/cours/${course.id}`);
           }}
@@ -1384,24 +1439,88 @@ export function ExerciseEditor() {
               <Field label="Titre">
                 <input name="title" defaultValue={e?.title} required />
               </Field>
-              <Field label="Consigne">
+              <Field
+                label="Consigne"
+                hint="Tu peux écrire la consigne ou joindre son PDF ci-dessous."
+              >
                 <textarea
                   name="instructions"
+                  aria-label="Consigne"
                   defaultValue={e?.instructions}
                   rows={12}
-                  required
+                  required={!pdf && !hasPDF}
                   dir="auto"
                 />
               </Field>
-              {e && (
+              {!locked && (
+                <div className="exercise-pdf-upload">
+                  <Field
+                    label="PDF de l’exercice"
+                    hint="Facultatif · PDF de 20 Mo maximum. Le fichier sera joint à l’exercice après sa validation."
+                  >
+                    <input
+                      ref={pdfInput}
+                      aria-label="PDF de l’exercice"
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        setPdfError("");
+                        if (!file) {
+                          setPdf(null);
+                          return;
+                        }
+                        if (
+                          file.type !== "application/pdf" ||
+                          file.size === 0 ||
+                          file.size > 20 * 1024 * 1024
+                        ) {
+                          setPdf(null);
+                          setPdfError(
+                            "Choisis un PDF non vide de 20 Mo maximum.",
+                          );
+                          event.target.value = "";
+                          return;
+                        }
+                        setPdf(file);
+                      }}
+                    />
+                  </Field>
+                  {pdf && (
+                    <div className="resource-row">
+                      <FileText size={20} />
+                      <span>
+                        {pdf.name} · {(pdf.size / 1024 / 1024).toFixed(2)} Mo
+                      </span>
+                      <Button
+                        variant="ghost"
+                        type="button"
+                        onClick={() => {
+                          setPdf(null);
+                          if (pdfInput.current) pdfInput.current.value = "";
+                        }}
+                      >
+                        Retirer le PDF
+                      </Button>
+                    </div>
+                  )}
+                  {progress !== null && (
+                    <p role="status">Validation du PDF : {progress} %</p>
+                  )}
+                  {pdfError && <Notice tone="error">{pdfError}</Notice>}
+                  {!e && saved && progress === null && !uploadedPDF && (
+                    <Notice>
+                      Le brouillon est conservé. Tu peux réessayer l’envoi sans
+                      créer un autre exercice.
+                    </Notice>
+                  )}
+                </div>
+              )}
+              {current && (
                 <Resources
                   kind="exercise"
-                  id={e.id}
-                  editable={
-                    !data.submissions.some(
-                      (s) => s.exercise_id === e.id && s.status !== "draft",
-                    )
-                  }
+                  id={current.id}
+                  editable={!locked && !pdf && !uploadedPDF}
                 />
               )}
             </div>

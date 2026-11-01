@@ -1461,6 +1461,87 @@ await rejects(
   "Archivage empêche toute nouvelle signature du PDF",
 );
 await root();
+
+// The exercise-PDF creation flow reuses the protected reservation/finalization pipeline.
+await as(teacher);
+let pdfExercise = await call("save_exercise", [
+  {
+    course_id: course.id,
+    title: "Exercice PDF",
+    instructions: "Énoncé dans le PDF joint.",
+    status: "draft",
+  },
+]);
+await root();
+await sql("update public.courses set status='published' where id=$1", [
+  course.id,
+]);
+await as(teacher);
+const exercisePdfReservation = await call("reserve_file", [
+  "exercise",
+  pdfExercise.id,
+  "Exercice.pdf",
+  "application/pdf",
+  200,
+]);
+check(
+  exercisePdfReservation.status === "pending",
+  "PDF exercice réservé sans publication avant validation",
+);
+await as(null, "service_role");
+await call("finalize_file", [
+  exercisePdfReservation.id,
+  200,
+  "application/pdf",
+  null,
+]);
+await as(teacher);
+check(
+  (
+    await sql("select * from public.exercise_resources where exercise_id=$1", [
+      pdfExercise.id,
+    ])
+  ).length === 1,
+  "Finalisation rattache le PDF à l’exercice sans le publier comme document de cours",
+);
+pdfExercise = await call("save_exercise", [
+  { status: "published" },
+  pdfExercise.id,
+  pdfExercise.row_version,
+]);
+await as(student);
+check(
+  await call("can_read_file", [exercisePdfReservation.id]),
+  "Étudiant autorisé à la matière peut lire le PDF exercice validé",
+);
+await as(outsider);
+check(
+  !(await call("can_read_file", [exercisePdfReservation.id])),
+  "Étudiant sans droit matière ne peut pas lire le PDF exercice",
+);
+await as(null, "anon");
+await rejects(
+  () =>
+    sql("select * from public.exercise_resources where file_id=$1", [
+      exercisePdfReservation.id,
+    ]),
+  /permission denied/,
+  "Pièce jointe PDF exercice invisible aux visiteurs",
+);
+await as(teacher);
+await rejects(
+  () =>
+    call("reserve_file", [
+      "exercise",
+      exercise.id,
+      "Changement.pdf",
+      "application/pdf",
+      200,
+    ]),
+  /ACCESS_DENIED/,
+  "Énoncé PDF d’un exercice déjà remis reste protégé contre les ajouts",
+);
+await root();
 await db.close();
 console.log(
   `\n${checks} vérifications PostgreSQL/RLS réussies. Aucun appel Google ou service Storage réel n’est simulé comme vérifié.`,

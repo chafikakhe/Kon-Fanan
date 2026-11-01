@@ -6,7 +6,7 @@ La demande actuelle prime sur les anciens panneaux crème des espaces connectés
 
 ## Landing
 
-Fond crème `#F7F5EC`, vert forêt `#153E32`, menthe `#AFE3C8`, photographies larges, Barlow Condensed 700/800 pour les titres et Manrope pour le texte. Les sections suivent la référence : hero, présentation, matières, méthode, défis, étapes et CTA. Aucun témoignage, effectif marketing ou pourcentage de réussite inventé.
+Fond crème `#F7F5EC`, vert forêt `#153E32`, menthe `#AFE3C8`, photographies larges et Manrope pour le texte. Les titres de landing utilisent désormais Archivo Black, une fonte large et épaisse aux lettres rapprochées, inspirée du nouveau visuel fourni. Les textes et la palette existants sont conservés. Barlow Condensed reste utilisée ailleurs dans l’application. Les sections suivent la référence : hero, présentation, matières, méthode, défis, étapes et CTA. Aucun témoignage, effectif marketing ou pourcentage de réussite inventé.
 
 ## Espaces connectés
 

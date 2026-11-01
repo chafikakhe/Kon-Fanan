@@ -7,14 +7,14 @@
 | TypeScript frontend strict | Réussi : `npm run typecheck` |
 | Build de production Vite | Réussi : `npm run build` |
 | Tests unitaires | 5 réussis : vidéo sûre, quotas, fuseau Casablanca, isolation des données de démonstration |
-| Migrations et permissions PostgreSQL/PGlite | 125 vérifications réussies |
+| Migrations et permissions PostgreSQL/PGlite | 131 vérifications réussies |
 | TypeScript Deno / Edge | Les 16 handlers et les helpers passent `npm run check:edge` |
-| Tests Edge | 9 réussis |
-| Playwright | Suite complète : 12 scénarios réussis en 3,3 minutes, incluant le lecteur vidéo/PDF |
+| Tests Edge | 10 réussis |
+| Playwright | Suite complète : 15 scénarios réussis en 3,4 minutes, incluant la création d’exercice avec PDF ; puis vérifications ciblées après les derniers ajustements |
 | Responsive | 46 routes connectées × 360, 390, 768, 1024 et 1440 px ; landing aux mêmes largeurs |
 | Débordement horizontal | Aucun débordement global sur ces contrôles ; titre de hero contrôlé également |
 | Accessibilité automatique | Aucun échec axe WCAG 2 A/AA sur landing, connexion et accueil étudiant testés |
-| Captures | 15 captures dans `screenshots/`, dont les packs sur ordinateur et téléphone |
+| Captures | 17 captures dans `screenshots/`, dont les packs et la nouvelle typographie sur ordinateur et téléphone |
 
 Exécution locale : macOS arm64, Node.js 26, Chromium headless via Playwright. L’accessibilité automatique complète les contrôles de clavier/focus ; elle ne certifie pas tous les écrans ni tous les critères WCAG.
 
@@ -31,6 +31,8 @@ Exécution locale : macOS arm64, Node.js 26, Chromium headless via Playwright. L
 - Changement de niveau, pack impossible désactivé, accès direct anonyme à un exercice orienté vers les packs et séance orientée vers la connexion. Nouvelles pages à 360, 390, 768 et 1440 px sans débordement ; analyse axe WCAG 2 A/AA sans échec sur la sélection de pack.
 - Lecteur vidéo visible dès l’ouverture ; PDF de quatre pages en livre sous la vidéo, double page, pagination, zoom, affichage agrandi/Échap, clavier, adaptation mobile et accès étudiant. Analyse axe WCAG 2 A/AA sans échec sur le lecteur testé.
 - Élargissement du cours et déplacement des exercices sous le contenu : build et cinq scénarios navigateur ciblés réussis. Le test vérifie la largeur du lecteur public et l’ordre visuel des exercices dans les deux parcours.
+- PDF sélectionné dès la création d’exercice, consigne textuelle facultative avec PDF, validation avant publication, document ouvert par l’étudiant autorisé, visiteur orienté vers les packs, envoi interrompu puis repris sans doublon, formats invalides refusés et affichage mobile. Le scénario d’ouverture vérifie le contenu PDF du lien émis ; il ne prétend pas contrôler le lecteur natif de tous les navigateurs.
+- Nouvelle fonte Archivo Black : contrôle des limites du titre et de l’absence de débordement à 360, 390, 768, 1024 et 1440 px, avec captures ordinateur/téléphone.
 
 Ces parcours navigateur utilisent la démonstration isolée. Les règles de production sont vérifiées séparément dans PostgreSQL, pas déduites de l’interface.
 

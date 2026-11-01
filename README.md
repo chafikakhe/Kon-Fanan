@@ -45,7 +45,7 @@ Les migrations versionnées sont dans `supabase/migrations`. `seed.sql` contient
 - Découverte publique niveau → matière → cours → exercice, packs de 1/2/3 matières à 100/180/270 DH au total, reprise après connexion, demandes et validation administrative du règlement. Aucun paiement en ligne simulé ; détails dans [PACKS.md](docs/PACKS.md).
 - Vidéo intégrée directement et livre PDF sous la vidéo : double page, navigation, zoom, affichage agrandi et lecture mobile. Les PDF attachés aux cours publiés sont consultables sans compte ; les documents d’exercice restent protégés. Voir [COURSE_READER.md](docs/COURSE_READER.md).
 - Admin : admissions avec classe et matières, capacité, classes, étudiants et droits, professeurs et affectations, référentiels, modération/transfert de contenus, état des intégrations et journal.
-- Professeur : groupes, cours/vidéos/exercices, copies et corrections brouillon/publiées, nouvelle version, challenges/concours et résultats, annonces, séances et connexion Google.
+- Professeur : groupes, cours/vidéos/exercices, choix d’un PDF dès la création d’exercice avec reprise d’envoi, copies et corrections brouillon/publiées, nouvelle version, challenges/concours et résultats, annonces, séances et connexion Google. Voir [EXERCISE_PDF.md](docs/EXERCISE_PDF.md).
 - Étudiant : matières autorisées, lecture et progression déclarative, dépôt photo/galerie/PDF avec aperçu, brouillon et reprise d’erreur, historique, corrections, défis et séances.
 - RLS sur les tables exposées, commandes SQL transactionnelles, schéma privé non exposé, buckets privés, validation serveur des fichiers, OAuth serveur chiffré et jobs Meet durables.
 

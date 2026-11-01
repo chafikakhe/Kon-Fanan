@@ -136,11 +136,31 @@ export async function command<T = unknown>(
 ): Promise<T> {
   return rpc<T>(db, "integration_command", { p_action: action, p_data: data });
 }
+export function isAllowedOrigin(origin: string): boolean {
+  const configured = [
+    Deno.env.get("APP_BASE_URL") || "",
+    ...(Deno.env.get("APP_ALLOWED_ORIGINS") || "").split(","),
+  ];
+  return configured.some((value) => {
+    try {
+      const url = new URL(value.trim());
+      return (
+        ["http:", "https:"].includes(url.protocol) &&
+        !url.username &&
+        !url.password &&
+        url.origin === origin
+      );
+    } catch {
+      return false;
+    }
+  });
+}
 export function cors(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin");
-  const allowed = Deno.env.get("APP_BASE_URL") ? new URL(appUrl()).origin : "";
   return {
-    ...(origin === allowed ? { "Access-Control-Allow-Origin": allowed } : {}),
+    ...(origin && isAllowedOrigin(origin)
+      ? { "Access-Control-Allow-Origin": origin }
+      : {}),
     "Access-Control-Allow-Headers":
       "authorization, apikey, content-type, x-client-info, x-worker-secret",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
@@ -167,7 +187,7 @@ export function endpoint(
       if (
         !options.publicRead &&
         req.headers.get("Origin") &&
-        req.headers.get("Origin") !== new URL(appUrl()).origin
+        !isAllowedOrigin(req.headers.get("Origin")!)
       )
         throw new AppError("ACCESS_DENIED", "Origine non autorisée.", 403);
       const result = await handler(req);
