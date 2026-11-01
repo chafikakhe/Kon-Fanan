@@ -26,7 +26,13 @@ export function useApp() {
 function readDemo(): Data {
   try {
     const s = sessionStorage.getItem("kf-demo-v1");
-    return s ? JSON.parse(s) : seedDemo();
+    return s
+      ? {
+          ...emptyData(),
+          ...JSON.parse(s),
+          pack_offers: JSON.parse(s).pack_offers || seedDemo().pack_offers,
+        }
+      : seedDemo();
   } catch {
     return seedDemo();
   }

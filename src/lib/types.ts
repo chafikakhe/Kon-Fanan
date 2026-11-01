@@ -1,3 +1,4 @@
+import type { PackOffer, PackOrder } from "./packs";
 export type Role = "admin" | "teacher" | "student";
 export type AccountStatus =
   "pending" | "active" | "rejected" | "suspended" | "archived";
@@ -224,6 +225,8 @@ export interface Audit {
   details?: unknown;
 }
 export interface Data {
+  pack_offers: PackOffer[];
+  pack_orders: PackOrder[];
   profiles: Profile[];
   account_access: Account[];
   academic_years: Year[];
@@ -250,6 +253,8 @@ export interface Data {
   course_resources: Resource[];
 }
 export const tables: (keyof Data)[] = [
+  "pack_offers",
+  "pack_orders",
   "profiles",
   "account_access",
   "academic_years",

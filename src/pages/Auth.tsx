@@ -17,6 +17,8 @@ import {
 import { useApp } from "../app/AppProvider";
 import { appURL, supabase, demoEnabled } from "../lib/supabase";
 import { demoID } from "../lib/demo";
+import { checkoutReturn, rememberCheckout } from "../lib/packs";
+import { StudentPacks } from "./Discovery";
 import { rolePath, roleLabel } from "../lib/utils";
 import type { Role } from "../lib/types";
 import {
@@ -41,6 +43,7 @@ export default function Auth() {
     >([]),
     [classError, setClassError] = useState("");
   const path = location.pathname;
+  const returnTo = checkoutReturn();
   const signup = path === "/inscription",
     forgot = path === "/mot-de-passe-oublie",
     reset = path === "/nouveau-mot-de-passe";
@@ -64,11 +67,15 @@ export default function Auth() {
     return (
       <Navigate
         to={
-          user.status === "active"
-            ? rolePath(user.role)
-            : user.status === "suspended"
-              ? "/compte-suspendu"
-              : "/admission"
+          returnTo &&
+          user.role === "student" &&
+          ["pending", "active"].includes(user.status)
+            ? returnTo
+            : user.status === "active"
+              ? rolePath(user.role)
+              : user.status === "suspended"
+                ? "/compte-suspendu"
+                : "/admission"
         }
         replace
       />
@@ -94,11 +101,11 @@ export default function Auth() {
         password,
         options: {
           data: { display_name: String(fd.get("name")) },
-          emailRedirectTo: `${appURL}/auth/callback`,
+          emailRedirectTo: `${appURL}/auth/callback${returnTo ? `?retour=${encodeURIComponent(returnTo)}` : ""}`,
         },
       });
       if (r.error) throw Error(r.error.message);
-      localStorage.setItem("kf-requested-class", chosen);
+      if (!returnTo) localStorage.setItem("kf-requested-class", chosen);
       setComplete(true);
     } else if (forgot) {
       await supabase.auth.resetPasswordForEmail(email, {
@@ -187,7 +194,9 @@ export default function Auth() {
             <div className="stack">
               <Notice tone="success">
                 {signup
-                  ? "Vérifie ta boîte email pour confirmer ton inscription. Tes matières seront attribuées après validation par l’administration."
+                  ? returnTo
+                    ? "Vérifie ta boîte email pour confirmer ton inscription. Ton pack et tes matières sont conservés pour reprendre ta demande d’achat."
+                    : "Vérifie ta boîte email pour confirmer ton inscription. Tes matières seront attribuées après validation par l’administration."
                   : forgot
                     ? "Si un compte correspond à cette adresse, un email de récupération a été envoyé."
                     : "Ton mot de passe a été enregistré."}
@@ -269,19 +278,23 @@ export default function Auth() {
               )}
               {signup && (
                 <>
-                  <Field label="Classe souhaitée">
-                    <select name="class" required defaultValue="">
-                      <option value="" disabled>
-                        Choisir ta classe
-                      </option>
-                      {classes.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name} — {c.year_label || "2026–2027"}
+                  {!returnTo && (
+                    <Field label="Classe souhaitée">
+                      <select name="class" required defaultValue="">
+                        <option value="" disabled>
+                          Choisir ta classe
                         </option>
-                      ))}
-                    </select>
-                  </Field>
-                  {classError && <Notice tone="error">{classError}</Notice>}
+                        {classes.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} — {c.year_label || "2026–2027"}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  )}
+                  {!returnTo && classError && (
+                    <Notice tone="error">{classError}</Notice>
+                  )}
                   <label className="checkbox-row">
                     <input type="checkbox" required />
                     <span>
@@ -295,8 +308,9 @@ export default function Auth() {
                     </span>
                   </label>
                   <Notice>
-                    Ton inscription sera validée par l’administration, qui
-                    attribuera tes matières.
+                    {returnTo
+                      ? "Retrouve ton choix de pack après confirmation de ton email. Tes droits seront activés après validation du règlement par l’administration."
+                      : "Ton inscription sera validée par l’administration, qui attribuera tes matières."}
                   </Notice>
                 </>
               )}
@@ -308,7 +322,7 @@ export default function Auth() {
               <Button
                 type="submit"
                 className="button primary full-width"
-                disabled={signup && !classes.length}
+                disabled={signup && !returnTo && !classes.length}
               >
                 {signup
                   ? "Créer mon compte"
@@ -348,7 +362,11 @@ export default function Auth() {
                       key={role}
                       onClick={() => {
                         loginDemo(role);
-                        navigate(rolePath(role));
+                        navigate(
+                          role === "student" && returnTo
+                            ? returnTo
+                            : rolePath(role),
+                        );
                       }}
                     >
                       <Icon size={19} />
@@ -380,6 +398,19 @@ export function AuthCallback() {
     let alive = true;
     async function run() {
       if (!supabase) return;
+      const resume = new URLSearchParams(window.location.search).get("retour");
+      if (resume) {
+        try {
+          const target = new URL(resume, window.location.origin);
+          if (
+            target.origin === window.location.origin &&
+            target.pathname === "/packs"
+          )
+            rememberCheckout(target.pathname + target.search);
+        } catch {
+          /* ignore invalid return paths */
+        }
+      }
       const code = new URLSearchParams(window.location.search).get("code");
       if (code) {
         const r = await supabase.auth.exchangeCodeForSession(code);
@@ -419,9 +450,13 @@ export function AuthCallback() {
       replace
       to={
         user
-          ? user.status === "active"
-            ? rolePath(user.role)
-            : "/admission"
+          ? checkoutReturn() &&
+            user.role === "student" &&
+            ["pending", "active"].includes(user.status)
+            ? checkoutReturn()!
+            : user.status === "active"
+              ? rolePath(user.role)
+              : "/admission"
           : "/connexion"
       }
     />
@@ -520,6 +555,7 @@ export function AccountState({ suspended = false }: { suspended?: boolean }) {
           </AsyncForm>
         )}
         {msg && <Notice tone="success">{msg}</Notice>}
+        {!suspended && user.role === "student" && <StudentPacks />}
         <div className="actions">
           <Button onClick={() => void refresh()}>Actualiser mon statut</Button>
           <Button variant="secondary" onClick={() => void logout()}>

@@ -9,6 +9,10 @@ Les listes chargent des pages API bornées à 100 lignes et proposent un afficha
 | Fonction | Arguments SQL |
 |---|---|
 | `open_classes` | `` |
+| `discovery_catalog` | `p_level_id uuid default null,p_subject_id uuid default null,p_course_id uuid default null,p_exercise_id uuid default null,p_offset int default 0` — public, cours par pages de 24, exercices sans consigne |
+| `request_pack_order` | `p_pack_id text,p_level_id uuid,p_subject_ids uuid[],p_idempotency_key uuid,p_course_id uuid default null,p_exercise_id uuid default null` — étudiant confirmé, demande sans activation |
+| `review_pack_order` | `p_order_id uuid,p_decision text,p_payment_reference text default ''` — administrateur, règlement vérifié avant activation |
+| `set_pack_availability` | `p_pack_id text,p_active boolean` — administrateur |
 | `request_admission` | `p_class_id uuid` |
 | `decide_admission` | `p_request_id uuid,p_decision text,p_class_id uuid default null,p_subject_ids uuid[] default '{}',p_message text default ''` |
 | `save_class` | `p_data jsonb,p_id uuid default null,p_expected_version int default null` |

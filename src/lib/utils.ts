@@ -92,6 +92,9 @@ export function validateFiles(files: File[]): string | null {
 export function errorMessage(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
   const pairs: Record<string, string> = {
+    PACK_UNAVAILABLE: "Ce pack n’est plus disponible. Choisis un autre pack.",
+    PAYMENT_REFERENCE_REQUIRED:
+      "Indiquez la référence du règlement vérifié avant d’activer ce pack.",
     CLASS_FULL: "Cette classe est complète. Choisissez une autre classe.",
     ACCESS_DENIED: "Cet accès a changé. Actualisez votre espace.",
     VERSION_CONFLICT:
@@ -147,6 +150,8 @@ export function errorMessage(err: unknown): string {
     : raw;
 }
 export const statusLabel: Record<string, string> = {
+  pending_review: "Règlement à vérifier",
+  revoked: "Révoqué",
   active: "Actif",
   pending: "En attente",
   accepted: "Acceptée",

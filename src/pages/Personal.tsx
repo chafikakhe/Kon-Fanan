@@ -19,6 +19,9 @@ import {
 import { date, initials, roleLabel, rolePath } from "../lib/utils";
 import { supabase, appURL } from "../lib/supabase";
 const notificationLabels: Record<string, string> = {
+  pack_active: "Ton pack est actif",
+  pack_rejected: "Une réponse à ta demande de pack",
+  pack_revoked: "Un pack a été révoqué",
   correction_published: "Une correction est disponible",
   evaluation_published: "Une correction est disponible",
   work_submitted: "Un nouveau travail a été remis",
@@ -54,6 +57,7 @@ export function Notifications() {
           competition: `${base}/competitions/${id}`,
           announcement: `${base}/annonces`,
           admission: "/admission",
+          pack_order: "/etudiant/packs",
         } as Record<string, string>
       )[type] || base
     );

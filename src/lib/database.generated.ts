@@ -971,6 +971,136 @@ export type Database = {
           },
         ];
       };
+      pack_offers: {
+        Row: {
+          currency: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          subject_count: number;
+          total_price: number;
+        };
+        Insert: {
+          currency?: string;
+          id: string;
+          is_active?: boolean;
+          name: string;
+          subject_count: number;
+          total_price: number;
+        };
+        Update: {
+          currency?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          subject_count?: number;
+          total_price?: number;
+        };
+        Relationships: [];
+      };
+      pack_orders: {
+        Row: {
+          course_id: string | null;
+          created_at: string;
+          currency: string;
+          exercise_id: string | null;
+          id: string;
+          idempotency_key: string;
+          level_id: string;
+          pack_id: string;
+          pack_name: string;
+          payment_reference: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: string;
+          student_id: string;
+          subject_count: number;
+          subject_ids: string[];
+          total_price: number;
+        };
+        Insert: {
+          course_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          exercise_id?: string | null;
+          id?: string;
+          idempotency_key: string;
+          level_id: string;
+          pack_id: string;
+          pack_name: string;
+          payment_reference?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: string;
+          student_id: string;
+          subject_count: number;
+          subject_ids: string[];
+          total_price: number;
+        };
+        Update: {
+          course_id?: string | null;
+          created_at?: string;
+          currency?: string;
+          exercise_id?: string | null;
+          id?: string;
+          idempotency_key?: string;
+          level_id?: string;
+          pack_id?: string;
+          pack_name?: string;
+          payment_reference?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: string;
+          student_id?: string;
+          subject_count?: number;
+          subject_ids?: string[];
+          total_price?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "pack_orders_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pack_orders_exercise_id_fkey";
+            columns: ["exercise_id"];
+            isOneToOne: false;
+            referencedRelation: "exercises";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pack_orders_level_id_fkey";
+            columns: ["level_id"];
+            isOneToOne: false;
+            referencedRelation: "levels";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pack_orders_pack_id_fkey";
+            columns: ["pack_id"];
+            isOneToOne: false;
+            referencedRelation: "pack_offers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pack_orders_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "pack_orders_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       platform_settings: {
         Row: {
           key: string;
@@ -1377,6 +1507,16 @@ export type Database = {
         Returns: Json;
       };
       delete_draft_file: { Args: { p_file_id: string }; Returns: Json };
+      discovery_catalog: {
+        Args: {
+          p_course_id?: string;
+          p_exercise_id?: string;
+          p_level_id?: string;
+          p_offset?: number;
+          p_subject_id?: string;
+        };
+        Returns: Json;
+      };
       finalize_file: {
         Args: {
           p_file_id: string;
@@ -1452,6 +1592,17 @@ export type Database = {
         Returns: Json;
       };
       request_admission: { Args: { p_class_id: string }; Returns: Json };
+      request_pack_order: {
+        Args: {
+          p_course_id?: string;
+          p_exercise_id?: string;
+          p_idempotency_key: string;
+          p_level_id: string;
+          p_pack_id: string;
+          p_subject_ids: string[];
+        };
+        Returns: Json;
+      };
       request_resubmission: {
         Args: { p_feedback: string; p_submission_id: string; p_until: string };
         Returns: Json;
@@ -1467,6 +1618,14 @@ export type Database = {
         Returns: Json;
       };
       retry_integration_job: { Args: { p_job_id: string }; Returns: Json };
+      review_pack_order: {
+        Args: {
+          p_decision: string;
+          p_order_id: string;
+          p_payment_reference?: string;
+        };
+        Returns: Json;
+      };
       save_announcement: {
         Args: { p_data: Json; p_expected_version?: number; p_id?: string };
         Returns: Json;
@@ -1519,6 +1678,10 @@ export type Database = {
       set_course_progress: {
         Args: { p_course_id: string; p_status: string };
         Returns: Json;
+      };
+      set_pack_availability: {
+        Args: { p_active: boolean; p_pack_id: string };
+        Returns: undefined;
       };
       set_subject_access: {
         Args: {

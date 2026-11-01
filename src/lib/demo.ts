@@ -11,6 +11,14 @@ const uid = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
 export function seedDemo(): Data {
   const d = emptyData();
+  d.pack_offers = [1, 2, 3].map((n, i) => ({
+    id: `pack-${n}`,
+    name: `Pack ${n}`,
+    subject_count: n,
+    total_price: [100, 180, 270][i],
+    currency: "MAD",
+    is_active: true,
+  }));
   d.profiles = [
     "Salma El Idrissi",
     "Youssef Amrani",
@@ -461,6 +469,7 @@ export function scopeDemo(source: Data, user: User): Data {
   d.profiles = d.profiles.filter((p) => profileIDs.has(p.id));
   d.profiles = d.profiles.map(({ email, ...profile }) => profile);
   d.account_access = d.account_access.filter((a) => a.user_id === user.id);
+  d.pack_orders = (d.pack_orders || []).filter((o) => o.student_id === user.id);
   d.admission_requests = d.admission_requests.filter(
     (a) => a.student_id === user.id,
   );
@@ -485,6 +494,64 @@ export function scopeDemo(source: Data, user: User): Data {
 }
 export function demoMutate(d: Data, u: User, name: string, p: Params): unknown {
   const v = p as Record<string, any>; // Dynamic RPC argument boundary; domain rows remain typed.
+  if (name === "request_pack_order") {
+    const offer = d.pack_offers.find(
+      (o) => o.id === v.p_pack_id && o.is_active,
+    );
+    const ids = v.p_subject_ids as string[];
+    if (u.role !== "student" || !["pending", "active"].includes(u.status))
+      throw Error("ACCESS_DENIED");
+    if (
+      !offer ||
+      ids.length !== offer.subject_count ||
+      new Set(ids).size !== ids.length ||
+      ids.some(
+        (id) =>
+          !d.class_subjects.some(
+            (cs) =>
+              cs.subject_id === id &&
+              cs.is_active &&
+              d.classes.some(
+                (c) =>
+                  c.id === cs.class_id &&
+                  c.level_id === v.p_level_id &&
+                  c.status === "active",
+              ),
+          ),
+      )
+    )
+      throw Error("INVALID_SUBJECTS");
+    d.pack_orders ||= [];
+    const existing = d.pack_orders.find(
+      (o) => o.student_id === u.id && o.idempotency_key === v.p_idempotency_key,
+    );
+    if (existing) return existing;
+    const order = {
+      id: uid(),
+      student_id: u.id,
+      pack_id: offer.id,
+      pack_name: offer.name,
+      subject_count: offer.subject_count,
+      total_price: offer.total_price,
+      currency: "MAD",
+      level_id: v.p_level_id,
+      subject_ids: ids,
+      status: "pending_review" as const,
+      idempotency_key: v.p_idempotency_key,
+      course_id: v.p_course_id || null,
+      exercise_id: v.p_exercise_id || null,
+      reviewed_by: null,
+      reviewed_at: null,
+      payment_reference: null,
+      created_at: now(),
+    };
+    d.pack_orders.push(order);
+    return order;
+  }
+  if (name === "review_pack_order" || name === "set_pack_availability")
+    throw Error(
+      "La validation des achats nécessite Supabase. Aucun règlement n’est simulé dans la démonstration.",
+    );
   const tableMap: Record<string, keyof Data> = {
     save_class: "classes",
     save_course: "courses",

@@ -4,7 +4,9 @@
 
 `auth.uid()` identifie l’acteur. `account_access` porte rôle/statut et n’est pas modifiable par le client. L’inscription publique crée toujours `student/pending`, même si des métadonnées demandent un autre rôle. La suspension et la révocation sont vérifiées avec les relations actuelles, indépendamment d’un JWT encore valide.
 
-Un étudiant doit cumuler compte actif, inscription active dans la classe/année, matière de classe active et autorisation individuelle active. Le contenu et ses parents doivent être publiés. Un professeur doit conserver une affectation active ; enseigner la même matière ne donne aucun droit sur les copies d’un autre professeur.
+Un étudiant doit avoir un compte actif et soit une inscription/autorisation individuelle active, soit un pack actif couvrant exactement la matière et le niveau concernés. Les parents classe/année et la matière doivent être actifs. Le contenu et ses parents doivent être publiés. Un professeur doit conserver une affectation active ; enseigner la même matière ne donne aucun droit sur les copies d’un autre professeur.
+
+La découverte publique utilise une projection dédiée des cours publiés et des seuls titres d’exercices. Elle n’expose ni énoncés, ni fichiers privés, ni liens live. Une demande de pack reste sans droit jusqu’à validation administrative du règlement avec référence vérifiable. Le client ne peut écrire ni le prix ni le statut des commandes ; une redirection de paiement n’active rien. Voir [PACKS.md](PACKS.md).
 
 RLS est activée sur les tables exposées. Les fonctions sensibles utilisent un `search_path` vide, des noms qualifiés, des permissions EXECUTE explicites et des contrôles d’acteur. Les tables privées ne sont pas exposées à PostgREST. La protection des routes React est une aide d’interface ; les tests SQL attaquent aussi les tables et RPC directement.
 

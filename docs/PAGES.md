@@ -5,6 +5,10 @@ Les pages reprennent les objectifs et compositions des références U01–U06, A
 ## Public et compte
 
 - `/`
+- `/decouvrir` : choix du niveau, des matières et des cours publiés sans compte
+- `/decouvrir/cours/:id` : lecture publique et titres des exercices
+- `/decouvrir/exercices/:id` : vérification des droits ou ouverture des packs
+- `/packs` : sélection, récapitulatif, retour de connexion et statut de demande
 - `/auth/callback`
 - `/admission`
 - `/compte-suspendu`
@@ -18,6 +22,7 @@ Les pages reprennent les objectifs et compositions des références U01–U06, A
 ## Administrateur
 
 - `/admin`
+- `/admin/packs` : disponibilité des offres et vérification administrative des règlements
 - `/admin/admissions`
 - `/admin/admissions/:id`
 - `/admin/classes`
@@ -61,6 +66,7 @@ Les pages reprennent les objectifs et compositions des références U01–U06, A
 ## Étudiant
 
 - `/etudiant`
+- `/etudiant/packs` : packs actifs, matières incluses et demandes
 - `/etudiant/matieres`
 - `/etudiant/matieres/:id`
 - `/etudiant/cours/:id`

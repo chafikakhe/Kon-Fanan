@@ -7,14 +7,14 @@
 | TypeScript frontend strict | Réussi : `npm run typecheck` |
 | Build de production Vite | Réussi : `npm run build` |
 | Tests unitaires | 5 réussis : vidéo sûre, quotas, fuseau Casablanca, isolation des données de démonstration |
-| Migrations et permissions PostgreSQL/PGlite | 72 vérifications réussies |
+| Migrations et permissions PostgreSQL/PGlite | 116 vérifications réussies |
 | TypeScript Deno / Edge | Les 15 handlers et les helpers passent `npm run check:edge` |
 | Tests Edge | 8 réussis |
-| Playwright | 7 scénarios distincts vérifiés : suite complète de 6 réussie en 2,8 minutes, puis 3 contrôles ciblés réussis dont le nouveau scénario d’envoi interrompu |
+| Playwright | Suite complète : 10 scénarios réussis en 3,1 minutes ; puis 4 scénarios packs/administration réussis, dont un contrôle supplémentaire des accès historiques (11 scénarios distincts) |
 | Responsive | 46 routes connectées × 360, 390, 768, 1024 et 1440 px ; landing aux mêmes largeurs |
 | Débordement horizontal | Aucun débordement global sur ces contrôles ; titre de hero contrôlé également |
 | Accessibilité automatique | Aucun échec axe WCAG 2 A/AA sur landing, connexion et accueil étudiant testés |
-| Captures | 13 captures dans `screenshots/`, sur ordinateur et téléphone |
+| Captures | 15 captures dans `screenshots/`, dont les packs sur ordinateur et téléphone |
 
 Exécution locale : macOS arm64, Node.js 26, Chromium headless via Playwright. L’accessibilité automatique complète les contrôles de clavier/focus ; elle ne certifie pas tous les écrans ni tous les critères WCAG.
 
@@ -27,6 +27,8 @@ Exécution locale : macOS arm64, Node.js 26, Chromium headless via Playwright. L
 - Brouillon de correction invisible à l’étudiant, puis correction visible après publication.
 - Refus de navigation vers le rôle admin depuis un compte étudiant ; menu mobile et accès à la seule matière autorisée.
 - Création de classe ; création de cours avec contenu/vidéo, exercice associé et publication visible par l’étudiant autorisé.
+- Découverte sans compte : niveau, matière, contenu du cours, exercice, packs ; matière présélectionnée modifiable, compteur et nombre exact, récapitulatif du prix total, inscription sans classe imposée, reprise complète après connexion et demande en attente sans faux paiement.
+- Changement de niveau, pack impossible désactivé, accès direct anonyme à un exercice orienté vers les packs et séance orientée vers la connexion. Nouvelles pages à 360, 390, 768 et 1440 px sans débordement ; analyse axe WCAG 2 A/AA sans échec sur la sélection de pack.
 
 Ces parcours navigateur utilisent la démonstration isolée. Les règles de production sont vérifiées séparément dans PostgreSQL, pas déduites de l’interface.
 
@@ -39,6 +41,8 @@ Couverture : inscription forcée étudiant/pending malgré métadonnées falsifi
 Les tables Auth et Storage sont représentées par un schéma de test. Le test de capacité vérifie une dernière place puis un refus sans modification partielle ; **la concurrence avec deux connexions PostgreSQL réelles reste à exécuter** sur Supabase. Le verrou SQL et l’unicité sont implémentés, mais PGlite mono-connexion ne prouve pas le comportement simultané en production.
 
 Le bootstrap administrateur est aussi testé : identité absente sans effet, activation du seul compte ciblé, conservation de son profil et absence de doublon d’audit lors d’une réexécution.
+
+Les packs sont testés avec les fonctions et rôles PostgreSQL réels dans PGlite : sélection exacte/distincte et compatible avec le niveau, prix serveur, trois offres, email confirmé, idempotence et conflit, isolation des commandes, absence d’accès en attente/refus, impossibilité d’auto-validation, référence obligatoire, activation administrative atomique, matières/niveaux isolés, profils et notifications des nouveaux étudiants, lives contrôlés, révocation, suspension et conservation des droits historiques. Les scénarios navigateur utilisent la démo ; ils n’attestent pas d’un règlement réel. Le catalogue et les refus anonymes ont également été contrôlés sur Supabase hébergé : voir [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Tests Edge exécutés
 
@@ -79,7 +83,7 @@ Lors de la recette initiale, aucun projet Supabase, SMTP, secret Google ou compt
 
 - Interface V1 en français ; les contenus Unicode/arabes et leur direction sont pris en charge, mais la traduction complète de l’interface n’est pas livrée.
 - Les mentions légales et de confidentialité sont une information de prélancement : exploitant, contact, durées de conservation, export/anonymisation et procédures de restauration restent à arrêter.
-- Pas de vidéo privée hébergée, paiement, messagerie ou correction automatique : ces fonctions sont hors V1.
+- Pas de vidéo privée hébergée, messagerie ou correction automatique. Le paiement en ligne reste à connecter ; les demandes de packs avec vérification administrative du règlement sont livrées.
 - La clé de chiffrement accepte une version active ; une rotation nécessite une migration contrôlée des connexions.
 - La déconnexion Google retire toujours les tokens locaux et tente la révocation distante ; un échec fournisseur reste possible.
 

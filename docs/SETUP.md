@@ -15,6 +15,7 @@ Ne pas exposer `private` dans les réglages Data API ou Realtime. Les migrations
 Activer la confirmation d’email, configurer un SMTP de recette, une longueur minimale de mot de passe de 12 caractères et les URLs de retour exactes :
 
 - `https://APP_DOMAIN/auth/callback`
+- `https://APP_DOMAIN/auth/callback?retour=…` pour reprendre le choix de pack après confirmation d’email ; autoriser les paramètres de cette route sur le domaine réel.
 - `https://APP_DOMAIN/nouveau-mot-de-passe`
 
 Dans Auth, définir `Site URL` sur le domaine de l’application. Vérifier l’inscription, les liens de récupération expirés et le comportement des invitations avec un vrai email de recette.
@@ -74,6 +75,8 @@ La création d’un Meet est un travail durable en base. Déployer `integration-
 Le worker traite au plus trois jobs par appel, avec verrou, identifiant d’événement stable, réconciliation, reprise bornée et compensation lors d’une annulation. Il nettoie également les fichiers abandonnés. Surveiller les jobs `error` depuis l’interface admin. Une conférence `pending` n’est jamais annoncée comme prête.
 
 ## 6. Recette réelle avant ouverture
+
+Le parcours public et les packs nécessitent `0005_discovery_packs.sql`. Les modalités de règlement restent hors application avec validation administrative explicite ; aucun prestataire de paiement en ligne n’est connecté. Configuration et procédure : [PACKS.md](PACKS.md).
 
 Créer deux classes et deux professeurs dans une même matière. Tester une admission concurrente sur la dernière place avec plusieurs connexions PostgreSQL, puis une révocation en session active. Sur un téléphone réel : galerie, caméra, PDF, coupure réseau, reprise, correction et nouvelle version.
 

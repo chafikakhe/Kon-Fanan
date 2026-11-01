@@ -5,6 +5,7 @@ import { Guard, Layout } from "./app/Layout";
 import { Loading } from "./components/ui";
 const Landing = lazy(() => import("./pages/Landing"));
 const Auth = lazy(() => import("./pages/Auth"));
+const PacksAdmin = lazy(() => import("./pages/PacksAdmin"));
 const named = <T extends Record<string, unknown>>(
   loader: () => Promise<T>,
   name: keyof T,
@@ -13,6 +14,7 @@ const named = <T extends Record<string, unknown>>(
     loader().then((m) => ({ default: m[name] as React.ComponentType })),
   );
 const auth = () => import("./pages/Auth"),
+  discovery = () => import("./pages/Discovery"),
   learning = () => import("./pages/Learning"),
   work = () => import("./pages/Work"),
   community = () => import("./pages/Community"),
@@ -20,6 +22,11 @@ const auth = () => import("./pages/Auth"),
   admin = () => import("./pages/Admin");
 const AuthCallback = named(auth, "AuthCallback"),
   AccountState = named(auth, "AccountState");
+const DiscoveryLayout = named(discovery, "DiscoveryLayout"),
+  CatalogPage = named(discovery, "CatalogPage"),
+  ExerciseEntry = named(discovery, "ExerciseEntry"),
+  PacksPage = named(discovery, "PacksPage"),
+  StudentPacksPage = named(discovery, "StudentPacksPage");
 const StudentDashboard = named(learning, "StudentDashboard"),
   TeacherDashboard = named(learning, "TeacherDashboard"),
   Subjects = named(learning, "Subjects"),
@@ -71,6 +78,15 @@ export default function App() {
         >
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route element={<DiscoveryLayout />}>
+              <Route path="/decouvrir" element={<CatalogPage />} />
+              <Route path="/decouvrir/cours/:id" element={<CatalogPage />} />
+              <Route
+                path="/decouvrir/exercices/:id"
+                element={<ExerciseEntry />}
+              />
+              <Route path="/packs" element={<PacksPage />} />
+            </Route>
             {[
               "connexion",
               "inscription",
@@ -91,6 +107,10 @@ export default function App() {
                 <Route path="/403" element={<Unavailable />} />
                 <Route element={<Guard role="student" />}>
                   <Route path="/etudiant" element={<StudentDashboard />} />
+                  <Route
+                    path="/etudiant/packs"
+                    element={<StudentPacksPage />}
+                  />
                   <Route path="/etudiant/matieres" element={<Subjects />} />
                   <Route path="/etudiant/matieres/:id" element={<Courses />} />
                   <Route
@@ -190,6 +210,7 @@ export default function App() {
                 </Route>
                 <Route element={<Guard role="admin" />}>
                   <Route path="/admin" element={<AdminDashboard />} />
+                  <Route path="/admin/packs" element={<PacksAdmin />} />
                   <Route path="/admin/admissions" element={<Admissions />} />
                   <Route
                     path="/admin/admissions/:id"

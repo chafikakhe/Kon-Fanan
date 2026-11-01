@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
   Camera,
@@ -32,6 +32,7 @@ import {
   Pagination,
   SearchInput,
   Tabs,
+  Loading,
 } from "../components/ui";
 import {
   date,
@@ -40,7 +41,14 @@ import {
   spaceInfo,
   validateFiles,
 } from "../lib/utils";
-import type { Evaluation, FileRow, SubmissionVersion } from "../lib/types";
+import type {
+  Course,
+  Exercise,
+  Evaluation,
+  FileRow,
+  SubmissionVersion,
+} from "../lib/types";
+import { supabase } from "../lib/supabase";
 import { Unavailable } from "./Learning";
 interface PendingFile {
   key: string;
@@ -462,11 +470,67 @@ export function UploadWork({
   );
 }
 export function ExerciseSubmission() {
-  const { data } = useApp(),
+  const { data, demo, user } = useApp(),
     { id } = useParams();
-  const e = data.exercises.find((e) => e.id === id);
-  if (!e) return <Unavailable />;
-  const c = data.courses.find((c) => c.id === e.course_id)!;
+  const [loaded, setLoaded] = useState<{
+      exercise: Exercise;
+      course: Course;
+    } | null>(null),
+    [checking, setChecking] = useState(true),
+    [loadError, setLoadError] = useState(""),
+    [retry, setRetry] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    setChecking(true);
+    setLoaded(null);
+    setLoadError("");
+    async function run() {
+      if (demo) {
+        const exercise = data.exercises.find((e) => e.id === id),
+          course = data.courses.find((c) => c.id === exercise?.course_id);
+        return exercise && course ? { exercise, course } : null;
+      }
+      const r = await supabase!
+        .from("exercises")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (r.error) throw Error("Impossible de charger cet exercice. Réessaie.");
+      if (!r.data) return null;
+      const c = await supabase!
+        .from("courses")
+        .select("*")
+        .eq("id", r.data.course_id)
+        .maybeSingle();
+      if (c.error) throw Error("Impossible de charger le cours. Réessaie.");
+      return c.data
+        ? { exercise: r.data as Exercise, course: c.data as Course }
+        : null;
+    }
+    void run()
+      .then((r) => {
+        if (alive) setLoaded(r);
+      })
+      .catch((e) => {
+        if (alive) setLoadError(e.message);
+      })
+      .finally(() => {
+        if (alive) setChecking(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [id, user?.id, demo, retry]);
+  if (checking) return <Loading />;
+  if (loadError)
+    return (
+      <Notice tone="error">
+        {loadError}
+        <Button onClick={() => setRetry((n) => n + 1)}>Réessayer</Button>
+      </Notice>
+    );
+  if (!loaded) return <Navigate replace to={`/decouvrir/exercices/${id}`} />;
+  const { exercise: e, course: c } = loaded;
   const info = spaceInfo(data, c.teaching_space_id);
   return (
     <>

@@ -5,7 +5,7 @@ Projet : `kon-fanan` (`wzjbamzlwchaqkcoascj`), région `eu-west-1`.
 ## Appliqué via CLI
 
 - Supabase CLI `2.122.0`, projet lié depuis le workspace local.
-- Migrations `0001_core.sql`, `0002_integrations.sql`, `0003_profile_stats.sql`, `0004_bootstrap_admin.sql` appliquées et présentes dans l’historique distant.
+- Migrations `0001_core.sql`, `0002_integrations.sql`, `0003_profile_stats.sql`, `0004_bootstrap_admin.sql`, `0005_discovery_packs.sql` appliquées et présentes dans l’historique distant.
 - Premier administrateur demandé par le propriétaire activé par `0004`, sur son UUID Auth vérifié. Le profil est conservé, le mot de passe reste inchangé et la transition est auditée. La migration est idempotente et ne modifie aucun compte si cette identité est absente d’un autre environnement.
 - `supabase/seed.sql` appliqué : niveaux, matières et année scolaire uniquement. Aucun compte, mot de passe ou travail fictif créé sur le projet.
 - Les 15 Edge Functions sont déployées et actives. Les paramètres `verify_jwt` correspondent à `config.toml`.
@@ -22,8 +22,9 @@ Les secrets générés sont conservés dans `supabase/.env.local` avec des permi
 - Appel du worker sans secret refusé : HTTP 403 / `ACCESS_DENIED`.
 - Appel Google status sans session refusé : HTTP 401 / `AUTH_REQUIRED`.
 - Les 15 fonctions sont `ACTIVE`, aucune fonction attendue absente, aucun écart de configuration JWT.
-- Vérification locale après adaptation du paquet : TypeScript, build et 8 tests Edge réussis. Les 72 contrôles SQL/RLS réussissent après ajout du bootstrap administrateur.
+- Vérification locale après adaptation du paquet : TypeScript, build et 8 tests Edge réussis. Après ajout des packs : build, 5 tests unitaires, 116 contrôles SQL/RLS et 11 scénarios navigateur distincts réussis (suite de 10 puis contrôles ciblés).
 - Contrôle distant après `0004` : compte ciblé `admin / active`, date d’activation présente et un événement d’audit de bootstrap.
+- Contrôle distant après `0005` : catalogue anonyme HTTP 200, six niveaux et trois packs à 100/180/270 DH au total, cours publié réel visible avec un titre d’exercice ; aucune consigne ni URL live dans la projection. Lecture anonyme des tables `exercises` et `pack_orders` refusée HTTP 401. Aucun achat réel n’a été créé ou activé pendant ces vérifications.
 
 ## Adaptation du paquet image
 
@@ -52,6 +53,7 @@ npx supabase functions deploy files-finalize --project-ref wzjbamzlwchaqkcoascj 
 Le frontend n’a pas été publié sur un hébergeur par cette opération. L’origine actuellement configurée est celle du fichier `.env` : `http://localhost:5173`.
 
 - Vérifier les URLs Auth autorisées et le SMTP de recette.
+- Autoriser le retour Auth vers les packs avec les paramètres de `/auth/callback`. Le règlement utilise une validation administrative explicite ; pour un paiement en ligne, un prestataire et ses webhooks fiables restent à connecter. Voir [PACKS.md](PACKS.md).
 - Configurer `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET`, l’écran de consentement et le callback dans Google Cloud.
 - Planifier le worker avec son secret et tester un vrai cycle Calendar/Meet.
 - Lors d’un hébergement du frontend, remplacer l’origine locale dans `VITE_APP_URL`, `APP_BASE_URL` et les URLs Auth.

@@ -933,6 +933,456 @@ check(
   ) === 1,
   "Bootstrap répété : une seule trace d’audit",
 );
+
+// Public discovery and purchase lifecycle: use the real functions and RLS roles.
+await root();
+await db.exec(
+  await readFile(
+    new URL("../supabase/migrations/0005_discovery_packs.sql", import.meta.url),
+    "utf8",
+  ),
+);
+check(true, "Migration additive catalogue et packs appliquée");
+const buyer = uid(1000),
+  otherBuyer = uid(1001),
+  unconfirmedBuyer = uid(1002);
+for (const id of [buyer, otherBuyer, unconfirmedBuyer])
+  await sql(
+    "insert into auth.users(id,email,email_confirmed_at) values($1,$2,$3)",
+    [
+      id,
+      `buyer-${id.slice(-4)}@example.test`,
+      id === unconfirmedBuyer ? null : new Date().toISOString(),
+    ],
+  );
+await as(null, "anon");
+const catalog = await call("discovery_catalog", [
+  level.id,
+  math.id,
+  course.id,
+  exercise.id,
+  0,
+]);
+check(
+  catalog.level_id === level.id &&
+    catalog.subject_id === math.id &&
+    catalog.course_id === course.id &&
+    catalog.exercise_id === exercise.id,
+  "Exercice public résolu vers son vrai niveau, sa matière et son cours",
+);
+check(
+  catalog.courses[0].body === "Résoudre x + 2 = 4" &&
+    catalog.exercises.some((e) => e.id === exercise.id),
+  "Cours publié consultable sans compte avec liste des exercices",
+);
+check(
+  !catalog.exercises.some((e) => "instructions" in e || "max_score" in e) &&
+    !("meet_url" in catalog),
+  "Catalogue public sans consigne, document privé ni lien live",
+);
+check(
+  catalog.packs.map((p) => Number(p.total_price)).join(",") === "100,180,270",
+  "Prix totaux exacts des trois packs",
+);
+await rejects(
+  () => sql("select * from public.exercises where id=$1", [exercise.id]),
+  /permission denied/,
+  "Énoncé direct refusé au visiteur anonyme",
+);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-1",
+      level.id,
+      [math.id],
+      uid(1003),
+      null,
+      null,
+    ]),
+  /permission denied/,
+  "Demande d’achat anonyme interdite côté serveur",
+);
+await as(unconfirmedBuyer);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-1",
+      level.id,
+      [math.id],
+      uid(1003),
+      null,
+      null,
+    ]),
+  /EMAIL_NOT_CONFIRMED/,
+  "Email non confirmé ne peut pas demander un pack",
+);
+await as(buyer);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-2",
+      level.id,
+      [math.id, math.id],
+      uid(1003),
+      null,
+      null,
+    ]),
+  /INVALID_SUBJECTS/,
+  "Doublons de matières refusés côté serveur",
+);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-1",
+      level.id,
+      [math.id, philosophy.id],
+      uid(1003),
+      null,
+      null,
+    ]),
+  /INVALID_SUBJECTS/,
+  "Nombre de matières supérieur au pack refusé",
+);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-3",
+      level.id,
+      [math.id, philosophy.id],
+      uid(1003),
+      null,
+      null,
+    ]),
+  /INVALID_SUBJECTS/,
+  "Pack impossible faute de trois matières refusé",
+);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-1",
+      uid(9999),
+      [math.id],
+      uid(1003),
+      null,
+      null,
+    ]),
+  /INVALID_SUBJECTS/,
+  "Matière hors du niveau refusée",
+);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-1",
+      level.id,
+      null,
+      uid(1003),
+      null,
+      null,
+    ]),
+  /INVALID_SUBJECTS/,
+  "Sélection nulle refusée",
+);
+const purchaseKey = uid(1004);
+const order = await call("request_pack_order", [
+  "pack-1",
+  level.id,
+  [math.id],
+  purchaseKey,
+  course.id,
+  exercise.id,
+]);
+check(
+  order.status === "pending_review" &&
+    Number(order.total_price) === 100 &&
+    order.subject_ids[0] === math.id,
+  "Serveur enregistre le pack, le prix, la sélection et le statut en attente",
+);
+check(
+  order.course_id === course.id && order.exercise_id === exercise.id,
+  "Contexte de reprise conservé dans la demande serveur",
+);
+check(
+  (
+    await call("request_pack_order", [
+      "pack-1",
+      level.id,
+      [math.id],
+      purchaseKey,
+      course.id,
+      exercise.id,
+    ])
+  ).id === order.id,
+  "Double envoi avec même clé : une seule demande",
+);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-1",
+      level.id,
+      [philosophy.id],
+      purchaseKey,
+      course.id,
+      exercise.id,
+    ]),
+  /IDEMPOTENCY_CONFLICT/,
+  "Réutiliser une clé avec un autre choix est refusé",
+);
+check(
+  (await sql("select * from public.exercises where id=$1", [exercise.id]))
+    .length === 0,
+  "Demande en attente ne débloque pas l’énoncé par URL directe",
+);
+await rejects(
+  () => call("start_submission_version", [exercise.id, null]),
+  /ACCESS_DENIED/,
+  "Demande en attente ne permet pas de déposer une copie",
+);
+await rejects(
+  () => call("get_meeting_join_url", [meeting.id]),
+  /ACCESS_DENIED/,
+  "Demande en attente ne donne pas le lien live",
+);
+await rejects(
+  () =>
+    sql("update public.pack_orders set status='active' where id=$1", [
+      order.id,
+    ]),
+  /permission denied/,
+  "Activation par écriture directe interdite",
+);
+await rejects(
+  () => call("review_pack_order", [order.id, "active", "fake"]),
+  /ACCESS_DENIED/,
+  "Étudiant ne peut pas valider son propre règlement",
+);
+await as(otherBuyer);
+check(
+  (await sql("select * from public.pack_orders")).length === 0,
+  "Demandes d’un autre étudiant invisibles",
+);
+await as(admin);
+await rejects(
+  () => call("review_pack_order", [order.id, "active", ""]),
+  /PAYMENT_REFERENCE_REQUIRED/,
+  "Administration doit fournir une référence de règlement",
+);
+const activated = await call("review_pack_order", [
+  order.id,
+  "active",
+  "RECEIPT-VERIFIED-001",
+]);
+check(
+  activated.status === "active" && activated.reviewed_by === admin,
+  "Validation administrative explicite active le pack et conserve le valideur",
+);
+await call("review_pack_order", [order.id, "active", "RECEIPT-VERIFIED-001"]);
+await as(buyer);
+check(
+  (
+    await one("select status from public.account_access where user_id=$1", [
+      buyer,
+    ])
+  ).status === "active",
+  "Compte pending activé uniquement après validation administrative",
+);
+check(
+  (await sql("select * from public.exercises where id=$1", [exercise.id]))
+    .length === 1,
+  "Pack actif donne accès à l’exercice acheté via RLS",
+);
+check(
+  (await call("has_subject_access", [otherCs.id])) === true,
+  "Pack couvre les cours de la même matière et du même niveau",
+);
+check(
+  (await call("has_subject_access", [csPhilo.id])) === false &&
+    (await sql("select * from public.courses where id=$1", [privateCourse.id]))
+      .length === 0,
+  "Une matière achetée ne donne aucun accès à une autre matière",
+);
+check(
+  (await sql("select * from public.classes where id=$1", [school.id]))
+    .length === 1,
+  "Métadonnées de la classe accessibles au détenteur de pack sans inscription historique",
+);
+await as(teacher);
+check(
+  (await sql("select * from public.profiles where id=$1", [buyer])).length ===
+    1,
+  "Professeur de la matière achetée peut identifier son nouvel étudiant",
+);
+await root();
+await sql(
+  "select private.notify_space($1,'meeting_scheduled','meeting',$2,'pack-live-notification-fixture')",
+  [space.id, meeting.id],
+);
+await as(buyer);
+check(
+  (
+    await sql(
+      "select * from public.notifications where dedupe_key='pack-live-notification-fixture'",
+    )
+  ).length === 1,
+  "Étudiant avec pack reçoit les notifications de sa matière",
+);
+// Create a separate joinable live; no Google request is simulated as verified.
+await root();
+const packAnnouncement = uid(1010),
+  packMeeting = uid(1011),
+  philoAnnouncement = uid(1012),
+  philoMeeting = uid(1013);
+await sql(
+  "insert into public.announcements(id,teaching_space_id,type,title,status,created_by) values($1,$2,'live_session','Live math','published',$3),($4,$5,'live_session','Live philo','published',$6)",
+  [
+    packAnnouncement,
+    space.id,
+    teacher,
+    philoAnnouncement,
+    philoSpace.id,
+    teacher2,
+  ],
+);
+await sql(
+  "insert into public.meetings(id,announcement_id,starts_at,ends_at,status,sync_status) values($1,$2,now(),now()+interval '1 hour','scheduled','synced'),($3,$4,now(),now()+interval '1 hour','scheduled','synced')",
+  [packMeeting, packAnnouncement, philoMeeting, philoAnnouncement],
+);
+const liveConnection = (
+  await one("select id from private.google_connections where teacher_id=$1", [
+    teacher,
+  ])
+).id;
+await sql(
+  "insert into private.meeting_integrations(meeting_id,connection_id,google_event_id,conference_request_id,meet_url) values($1,$2,'pack-live-math','pack-live-math','https://meet.google.com/abc-defg-hij'),($3,$2,'pack-live-philo','pack-live-philo','https://meet.google.com/xyz-abcd-efg')",
+  [packMeeting, liveConnection, philoMeeting],
+);
+await as(buyer);
+check(
+  (await call("get_meeting_join_url", [packMeeting])) ===
+    "https://meet.google.com/abc-defg-hij",
+  "Live de la matière achetée délivré par le contrôle serveur existant",
+);
+await rejects(
+  () => call("get_meeting_join_url", [philoMeeting]),
+  /ACCESS_DENIED/,
+  "URL directe du live d’une autre matière refusée",
+);
+await as(admin);
+await call("review_pack_order", [order.id, "revoked", ""]);
+await as(buyer);
+check(
+  !(await call("can_read_exercise", [exercise.id])),
+  "Révocation du pack retire immédiatement l’accès à l’exercice",
+);
+await rejects(
+  () => call("get_meeting_join_url", [packMeeting]),
+  /ACCESS_DENIED/,
+  "Révocation du pack retire immédiatement le lien live",
+);
+await as(student);
+check(
+  await call("can_read_exercise", [exercise.id]),
+  "Accès historiques conservés après migration et révocation d’un pack tiers",
+);
+await as(otherBuyer);
+const secondOrder = await call("request_pack_order", [
+  "pack-2",
+  level.id,
+  [math.id, philosophy.id],
+  uid(1020),
+  null,
+  null,
+]);
+check(
+  secondOrder.subject_count === 2 && Number(secondOrder.total_price) === 180,
+  "Pack 2 conserve exactement deux matières pour 180 DH au total",
+);
+await as(admin);
+await call("review_pack_order", [secondOrder.id, "rejected", ""]);
+await as(otherBuyer);
+check(
+  !(await call("has_subject_access", [cs.id])),
+  "Demande refusée ne donne aucun accès",
+);
+await as(admin);
+const additionalSubject = await call("save_reference", [
+  "subjects",
+  { code: "PHY", label: "Physique-chimie" },
+]);
+await root();
+await sql(
+  "insert into public.class_subjects(class_id,subject_id) values($1,$2)",
+  [school.id, additionalSubject.id],
+);
+await as(buyer);
+const thirdOrder = await call("request_pack_order", [
+  "pack-3",
+  level.id,
+  [math.id, philosophy.id, additionalSubject.id],
+  uid(1030),
+  null,
+  null,
+]);
+check(
+  thirdOrder.subject_count === 3 && Number(thirdOrder.total_price) === 270,
+  "Pack 3 enregistre trois matières distinctes pour 270 DH au total",
+);
+await as(admin);
+await call("review_pack_order", [thirdOrder.id, "active", "VERIFIED-PACK3"]);
+const differentLevel = await call("save_reference", [
+  "levels",
+  { code: "2AC", label: "2ème collège", cycle: "college" },
+]);
+const differentSchool = await call("save_class", [
+  {
+    name: "2ème A",
+    academic_year_id: year.id,
+    level_id: differentLevel.id,
+    capacity: 10,
+    subject_ids: [math.id],
+  },
+]);
+await root();
+const differentCs = await one(
+  "select id from public.class_subjects where class_id=$1",
+  [differentSchool.id],
+);
+await as(buyer);
+check(
+  !(await call("has_subject_access", [differentCs.id])),
+  "Pack ne débloque pas la même matière à un autre niveau",
+);
+await as(admin);
+await call("set_account_status", [buyer, "suspended"]);
+await as(buyer);
+check(
+  !(await call("has_subject_access", [cs.id])),
+  "Compte suspendu ne conserve pas un accès issu du pack actif",
+);
+await as(admin);
+await rejects(
+  () => call("review_pack_order", [thirdOrder.id, "rejected", ""]),
+  /INVALID_STATUS/,
+  "Transition de statut incohérente refusée après activation",
+);
+await call("set_account_status", [buyer, "active"]);
+await as(admin);
+await call("set_pack_availability", ["pack-1", false]);
+await as(buyer);
+await rejects(
+  () =>
+    call("request_pack_order", [
+      "pack-1",
+      level.id,
+      [math.id],
+      uid(1021),
+      null,
+      null,
+    ]),
+  /PACK_UNAVAILABLE/,
+  "Pack suspendu ne peut plus recevoir de nouvelles demandes",
+);
+await root();
+
 await db.close();
 console.log(
   `\n${checks} vérifications PostgreSQL/RLS réussies. Aucun appel Google ou service Storage réel n’est simulé comme vérifié.`,

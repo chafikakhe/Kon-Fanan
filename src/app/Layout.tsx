@@ -32,6 +32,7 @@ const navigation = {
   student: [
     ["", "Mon espace", LayoutDashboard],
     ["/matieres", "Mes matières", BookOpen],
+    ["/packs", "Mes packs", BookOpen],
     ["/mes-travaux", "Mes travaux", ClipboardList],
     ["/competitions", "Challenges et concours", Trophy],
     ["/annonces", "Annonces", Megaphone],
@@ -55,12 +56,14 @@ const navigation = {
     ["/professeurs", "Professeurs", Users],
     ["/referentiels", "Référentiels", Settings2],
     ["/contenus", "Contenus", PanelsTopLeft],
+    ["/packs", "Packs et achats", BookOpen],
     ["/integrations", "Intégrations", Plug],
     ["/audit", "Journal d’activité", ScrollText],
   ],
 } as const;
 export function Guard({ role }: { role?: Role }) {
   const { user, loading, error, refresh } = useApp();
+  const location = useLocation();
   if (loading)
     return (
       <div className="full-state">
@@ -73,6 +76,19 @@ export function Guard({ role }: { role?: Role }) {
         <Notice tone="error">{error}</Notice>
         <Button onClick={() => void refresh()}>Réessayer</Button>
       </div>
+    );
+  if (
+    (!user || user.status === "pending") &&
+    location.pathname.startsWith("/etudiant/exercices/")
+  )
+    return (
+      <Navigate
+        to={location.pathname.replace(
+          "/etudiant/exercices/",
+          "/decouvrir/exercices/",
+        )}
+        replace
+      />
     );
   if (!user) return <Navigate to="/connexion" replace />;
   if (user.status === "suspended" || user.status === "archived")

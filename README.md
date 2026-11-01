@@ -37,11 +37,12 @@ npx supabase db reset
 npx supabase functions serve --env-file supabase/.env.local
 ```
 
-Les trois migrations sont dans `supabase/migrations`. `seed.sql` contient uniquement les six niveaux, quatre matières et l’année scolaire. Il ne crée aucun mot de passe ou compte privilégié. Pour un projet hébergé, suivre [SETUP.md](docs/SETUP.md). Le déploiement réalisé sur le projet fourni est documenté dans [DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Les migrations versionnées sont dans `supabase/migrations`. `seed.sql` contient uniquement les six niveaux, quatre matières et l’année scolaire. Il ne crée aucun mot de passe ou compte privilégié. Pour un projet hébergé, suivre [SETUP.md](docs/SETUP.md). Le déploiement réalisé sur le projet fourni est documenté dans [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Ce qui est implémenté
 
 - Landing, connexion/inscription/confirmation, récupération, admission, suspension, notifications et profil.
+- Découverte publique niveau → matière → cours → exercice, packs de 1/2/3 matières à 100/180/270 DH au total, reprise après connexion, demandes et validation administrative du règlement. Aucun paiement en ligne simulé ; détails dans [PACKS.md](docs/PACKS.md).
 - Admin : admissions avec classe et matières, capacité, classes, étudiants et droits, professeurs et affectations, référentiels, modération/transfert de contenus, état des intégrations et journal.
 - Professeur : groupes, cours/vidéos/exercices, copies et corrections brouillon/publiées, nouvelle version, challenges/concours et résultats, annonces, séances et connexion Google.
 - Étudiant : matières autorisées, lecture et progression déclarative, dépôt photo/galerie/PDF avec aperçu, brouillon et reprise d’erreur, historique, corrections, défis et séances.
@@ -59,10 +60,12 @@ npm run test:sql
 npm run check:edge
 npm run test:edge
 npx playwright install chromium
-npm run test:e2e
+KF_TEST_PORT=5281 VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= npm run test:e2e
 ```
 
 Les tests SQL exécutent les migrations dans PostgreSQL WASM/PGlite avec des identités `anon`, `student`, `teacher`, `admin` et `service_role`. Les services Auth/Storage sont représentés par un schéma de test ; les appels réseau aux fournisseurs ne sont pas couverts par ce test.
+
+La commande navigateur ci-dessus utilise une démonstration isolée sur un port distinct du serveur réel, sans modifier `.env`.
 
 Les tests navigateur vérifient les trois rôles à 360, 390, 768, 1024 et 1440 px, les admissions, le dépôt/correction, l’isolation des routes et des contrôles axe. Le serveur de test utilise `127.0.0.1:5279`. Les captures de contrôle se trouvent dans `screenshots/`.
 

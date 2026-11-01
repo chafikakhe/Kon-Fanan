@@ -73,9 +73,9 @@ export default function Landing() {
               <br />
               Un avenir qui se construit, à ton rythme.
             </p>
-            <a className="button primary" href="#matieres">
-              Découvrir les cours <ArrowRight size={18} />
-            </a>
+            <ButtonLink to="/decouvrir">
+              Commencer <ArrowRight size={18} />
+            </ButtonLink>
             <div className="hero-footnote">
               Tes idées vont plus loin que tu ne le penses.
             </div>
@@ -146,7 +146,7 @@ export default function Landing() {
               return (
                 <Link
                   key={label as string}
-                  to="/inscription"
+                  to="/decouvrir"
                   className="landing-subject"
                 >
                   <span className={`subject-blob ${color}`}>
@@ -161,8 +161,8 @@ export default function Landing() {
             })}
           </div>
           <small className="subject-footnote">
-            Les matières disponibles dépendent de ta classe et des accès
-            attribués par l’administration.
+            Choisis ton niveau pour découvrir ses matières et ses cours sans
+            créer de compte.
           </small>
         </section>
         <section id="methode" className="method-section landing-section">
@@ -241,7 +241,7 @@ export default function Landing() {
             <br />
             Ce que tu apprends prend une nouvelle dimension.
           </p>
-          <ButtonLink to="/inscription">
+          <ButtonLink to="/decouvrir">
             C’est parti <ArrowRight size={18} />
           </ButtonLink>
           <div className="challenge-collage">
@@ -282,16 +282,16 @@ export default function Landing() {
           <ol>
             {[
               [
-                "Crée ton compte",
-                "Quelques minutes pour faire le premier pas.",
+                "Choisis ton niveau",
+                "Retrouve les matières de ton niveau scolaire.",
               ],
               [
-                "Retrouve tes matières",
-                "Après validation, tes cours et tes exercices t’attendent.",
+                "Découvre les cours",
+                "Explore les contenus sans créer de compte.",
               ],
               [
-                "Apprends et pratique",
-                "Avance à ton rythme, avec le soutien de tes professeurs.",
+                "Pratique avec ton pack",
+                "Choisis tes matières pour les exercices et les séances live.",
               ],
             ].map(([t, p], i) => (
               <li key={t}>
@@ -319,8 +319,8 @@ export default function Landing() {
               <br />
               LE DÉCLIC ?
             </h2>
-            <ButtonLink to="/inscription">
-              Créer mon compte <ArrowRight size={18} />
+            <ButtonLink to="/decouvrir">
+              Explorer les cours <ArrowRight size={18} />
             </ButtonLink>
           </div>
         </section>

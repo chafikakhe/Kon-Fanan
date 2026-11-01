@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Markdown, RichTextEditor } from "../components/RichText";
 import { Resources } from "../components/Resources";
+import { StudentPacks } from "./Discovery";
 import { useApp } from "../app/AppProvider";
 import {
   Panel,
@@ -197,6 +198,7 @@ export function StudentDashboard() {
           </>
         }
       />
+      <StudentPacks compact />
       <div className="dashboard-main-grid">
         <Panel className="continue-panel">
           <div className="panel-heading">
@@ -537,80 +539,73 @@ export function TeacherDashboard() {
 }
 export function Subjects() {
   const { data, user } = useApp();
-  const allowed = data.student_subject_access.filter(
-    (a) =>
-      a.status === "active" &&
-      data.class_enrollments.some(
-        (e) =>
-          e.id === a.enrollment_id &&
-          e.student_id === user!.id &&
-          e.status === "active",
-      ),
-  );
   return (
     <>
       <PageHeader
         eyebrow="CHAQUE MATIÈRE OUVRE UN MONDE"
         title="Mes matières"
-        description="Les matières auxquelles l’administration t’a donné accès."
+        description="Les matières incluses dans tes packs et tes accès attribués par l’administration."
+        action={
+          <ButtonLink variant="secondary" to="/packs">
+            Voir les autres packs
+          </ButtonLink>
+        }
       />
       <div className="grid-2">
-        {data.class_subjects
-          .filter((cs) => allowed.some((a) => a.class_subject_id === cs.id))
-          .map((cs) => {
-            const sub = data.subjects.find((s) => s.id === cs.subject_id),
-              spaces = data.teaching_spaces.filter(
-                (s) => s.class_subject_id === cs.id,
-              );
-            return (
-              <Panel className="subject-card" key={cs.id}>
-                <span className="subject-icon">
-                  <Calculator size={30} />
-                </span>
-                <span className="eyebrow">
-                  {data.classes.find((c) => c.id === cs.class_id)?.name}
-                </span>
-                <h2>{sub?.label}</h2>
-                <p>
-                  Comprendre les idées, explorer les méthodes et trouver ta
-                  solution.
-                </p>
-                <div className="subject-teachers">
-                  {spaces.map((s) => (
-                    <span key={s.id} className="teacher-label">
-                      <span className="avatar tiny">
-                        {initials(
-                          data.profiles.find((p) => p.id === s.teacher_id)
-                            ?.display_name,
-                        )}
-                      </span>
-                      {
-                        data.profiles.find((p) => p.id === s.teacher_id)
-                          ?.display_name
-                      }
-                    </span>
-                  ))}
-                </div>
-                <div className="subject-card-bottom">
-                  <span>
-                    {
-                      data.courses.filter(
-                        (c) =>
-                          spaces.some((s) => s.id === c.teaching_space_id) &&
-                          c.status === "published",
-                      ).length
-                    }{" "}
-                    cours publiés
-                  </span>
-                  <ButtonLink to={`/etudiant/matieres/${cs.id}`}>
-                    Voir les cours <ArrowRight size={17} />
-                  </ButtonLink>
-                </div>
-              </Panel>
+        {data.class_subjects.map((cs) => {
+          const sub = data.subjects.find((s) => s.id === cs.subject_id),
+            spaces = data.teaching_spaces.filter(
+              (s) => s.class_subject_id === cs.id,
             );
-          })}
+          return (
+            <Panel className="subject-card" key={cs.id}>
+              <span className="subject-icon">
+                <Calculator size={30} />
+              </span>
+              <span className="eyebrow">
+                {data.classes.find((c) => c.id === cs.class_id)?.name}
+              </span>
+              <h2>{sub?.label}</h2>
+              <p>
+                Comprendre les idées, explorer les méthodes et trouver ta
+                solution.
+              </p>
+              <div className="subject-teachers">
+                {spaces.map((s) => (
+                  <span key={s.id} className="teacher-label">
+                    <span className="avatar tiny">
+                      {initials(
+                        data.profiles.find((p) => p.id === s.teacher_id)
+                          ?.display_name,
+                      )}
+                    </span>
+                    {
+                      data.profiles.find((p) => p.id === s.teacher_id)
+                        ?.display_name
+                    }
+                  </span>
+                ))}
+              </div>
+              <div className="subject-card-bottom">
+                <span>
+                  {
+                    data.courses.filter(
+                      (c) =>
+                        spaces.some((s) => s.id === c.teaching_space_id) &&
+                        c.status === "published",
+                    ).length
+                  }{" "}
+                  cours publiés
+                </span>
+                <ButtonLink to={`/etudiant/matieres/${cs.id}`}>
+                  Voir les cours <ArrowRight size={17} />
+                </ButtonLink>
+              </div>
+            </Panel>
+          );
+        })}
       </div>
-      {!allowed.length && (
+      {!data.class_subjects.length && (
         <Panel>
           <Empty
             title="Tes accès ne sont pas encore attribués"
