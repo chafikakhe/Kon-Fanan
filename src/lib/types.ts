@@ -3,6 +3,8 @@ export type Role = "admin" | "teacher" | "student";
 export type AccountStatus =
   "pending" | "active" | "rejected" | "suspended" | "archived";
 export interface Profile {
+  first_name?: string | null;
+  last_name?: string | null;
   email?: string;
   id: string;
   display_name: string;
@@ -12,6 +14,10 @@ export interface Account {
   user_id: string;
   role: Role;
   status: AccountStatus;
+}
+export interface CreatedTeacher {
+  profile: Profile;
+  account: Account;
 }
 export interface Year {
   id: string;

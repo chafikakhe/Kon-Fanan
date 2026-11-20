@@ -17,7 +17,7 @@ import {
   RefreshCw,
   ChevronRight,
   Archive,
-  Mail,
+  Copy,
   Settings2,
 } from "lucide-react";
 import { useApp } from "../app/AppProvider";
@@ -44,7 +44,14 @@ import {
   spaceInfo,
   statusLabel,
 } from "../lib/utils";
-import type { Data, Enrollment, SchoolClass } from "../lib/types";
+import { PasswordField } from "../components/PasswordField";
+import { generatePassword } from "../lib/passwords";
+import type {
+  CreatedTeacher,
+  Data,
+  Enrollment,
+  SchoolClass,
+} from "../lib/types";
 
 const SIZE = 8;
 const nameOf = (d: Data, id?: string) =>
@@ -369,10 +376,10 @@ export function AdminDashboard() {
         </Panel>
         <Panel title="Un peu d’avance">
           <div className="stack">
-            <Link className="quick-link" to="/admin/professeurs?inviter=1">
+            <Link className="quick-link" to="/admin/professeurs?ajouter=1">
               <UserPlus />
               <div>
-                <strong>Inviter un professeur</strong>
+                <strong>Ajouter un professeur</strong>
                 <small>Enrichir l’équipe pédagogique</small>
               </div>
               <ArrowRight size={17} />
@@ -1898,13 +1905,36 @@ function TransferStudent({
 }
 
 export function Teachers() {
-  const { data } = useApp();
+  const { data: loadedData, refresh } = useApp();
+  // Keep the newly created row visible even outside the first 100 loaded profiles.
+  const [created, setCreated] = useState<CreatedTeacher[]>([]);
+  const data = {
+    ...loadedData,
+    profiles: [
+      ...loadedData.profiles,
+      ...created
+        .map((t) => t.profile)
+        .filter((p) => !loadedData.profiles.some((row) => row.id === p.id)),
+    ],
+    account_access: [
+      ...created.map(
+        (t) =>
+          loadedData.account_access.find(
+            (a) => a.user_id === t.account.user_id,
+          ) || t.account,
+      ),
+      ...loadedData.account_access.filter(
+        (a) => !created.some((t) => t.account.user_id === a.user_id),
+      ),
+    ],
+  };
   const [query, setQuery] = useState(""),
     [status, setStatus] = useState(""),
     [subject, setSubject] = useState(""),
     [page, setPage] = useState(1),
-    [invite, setInvite] = useState(
-      new URLSearchParams(window.location.search).has("inviter"),
+    [adding, setAdding] = useState(
+      new URLSearchParams(window.location.search).has("ajouter") ||
+        new URLSearchParams(window.location.search).has("inviter"),
     );
   const list = data.account_access.filter(
     (a) =>
@@ -1930,9 +1960,9 @@ export function Teachers() {
         title="Les professeurs"
         description="Des enseignants, des matières, des groupes pour progresser."
         action={
-          <Button onClick={() => setInvite(true)}>
+          <Button onClick={() => setAdding(true)}>
             <UserPlus size={18} />
-            Inviter un professeur
+            Ajouter un professeur
           </Button>
         }
       />
@@ -2029,66 +2059,173 @@ export function Teachers() {
         ) : (
           <Empty
             title="Aucun professeur trouvé"
-            description="Invitez un professeur ou modifiez vos filtres."
+            description="Ajoutez un professeur ou modifiez vos filtres."
           />
         )}
         <Pagination page={page} total={list.length} onChange={setPage} />
       </Panel>
-      {invite && <InviteTeacher onClose={() => setInvite(false)} />}
+      {adding && (
+        <AddTeacher
+          onClose={(didCreate) => {
+            setAdding(false);
+            if (didCreate) void refresh();
+          }}
+          onCreated={(teacher) => {
+            setCreated((rows) => [teacher, ...rows]);
+            setQuery("");
+            setStatus("");
+            setSubject("");
+            setPage(1);
+          }}
+        />
+      )}
     </>
   );
 }
-function InviteTeacher({ onClose }: { onClose: () => void }) {
+function AddTeacher({
+  onClose,
+  onCreated,
+}: {
+  onClose: (didCreate: boolean) => void;
+  onCreated: (teacher: CreatedTeacher) => void;
+}) {
   const { invoke, notify, demo } = useApp();
-  const [sent, setSent] = useState(false);
+  // Credentials only live in this mounted dialog; never in persistent app data.
+  const [password, setPassword] = useState("");
+  const [credentials, setCredentials] = useState<{
+    email: string;
+    password: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
+  const [creating, setCreating] = useState(false);
+  const close = () => {
+    if (!creating) onClose(Boolean(credentials));
+  };
   return (
-    <Modal title="Inviter un professeur" onClose={onClose}>
-      {sent ? (
+    <Modal title="Ajouter un professeur" onClose={close}>
+      {credentials ? (
         <div className="stack">
           <Notice tone="success">
-            {demo
-              ? "L’invitation a été simulée. Aucun email n’a été envoyé."
-              : "L’invitation a été envoyée par email."}
+            Le compte est créé et utilisable immédiatement. Transmettez ces
+            identifiants vous-même ; aucun email n’a été envoyé.
           </Notice>
-          <Button onClick={onClose}>Fermer</Button>
+          <Field label="Email du professeur">
+            <input readOnly value={credentials.email} />
+          </Field>
+          <PasswordField
+            label="Mot de passe initial"
+            name="created-password"
+            value={credentials.password}
+            readOnly
+          />
+          <p className="muted">
+            Ces identifiants ne seront plus affichés après la fermeture. Le
+            professeur pourra modifier son mot de passe depuis Mon profil →
+            Sécurité.
+          </p>
+          <Button
+            variant="secondary"
+            onClick={async () => {
+              setCopyError("");
+              try {
+                await navigator.clipboard.writeText(
+                  `Connexion : ${window.location.origin}/connexion\nEmail : ${credentials.email}\nMot de passe : ${credentials.password}`,
+                );
+                setCopied(true);
+              } catch {
+                setCopyError(
+                  "La copie automatique est indisponible. Affichez le mot de passe et copiez les identifiants manuellement.",
+                );
+              }
+            }}
+          >
+            <Copy size={17} />
+            Copier les identifiants
+          </Button>
+          {copied && <Notice tone="success">Identifiants copiés.</Notice>}
+          {copyError && <Notice tone="error">{copyError}</Notice>}
+          <Button onClick={close}>Fermer</Button>
         </div>
       ) : (
         <AsyncForm
           onSubmit={async (form) => {
-            await invoke("teacher-invite", {
-              email: formValue(form, "email"),
-              displayName: formValue(form, "name"),
-            });
-            setSent(true);
-            notify(
-              demo
-                ? "Invitation de démonstration enregistrée."
-                : "Invitation envoyée.",
-            );
+            if (demo)
+              throw Error(
+                "La création de comptes nécessite Supabase. Aucun compte réel n’est créé en démonstration.",
+              );
+            setCreating(true);
+            try {
+              const teacher = await invoke<CreatedTeacher>("teacher-create", {
+                firstName: formValue(form, "firstName"),
+                lastName: formValue(form, "lastName"),
+                email: formValue(form, "email"),
+                password,
+              });
+              setCredentials({ email: teacher.profile.email!, password });
+              setPassword("");
+              onCreated(teacher);
+              notify("Le compte professeur a été créé.");
+            } finally {
+              setCreating(false);
+            }
           }}
         >
           <p className="muted">
-            Le professeur recevra un lien sécurisé pour activer son compte. Vous
-            pourrez ensuite lui affecter ses groupes.
+            Définissez les identifiants du professeur. Vous pourrez ensuite lui
+            affecter ses matières et ses groupes depuis son profil.
           </p>
-          <Field label="Nom complet">
-            <input name="name" required maxLength={120} autoComplete="name" />
+          <Field label="Nom">
+            <input
+              name="lastName"
+              required
+              maxLength={60}
+              autoComplete="family-name"
+            />
+          </Field>
+          <Field label="Prénom">
+            <input
+              name="firstName"
+              required
+              maxLength={60}
+              autoComplete="given-name"
+            />
           </Field>
           <Field label="Adresse email professionnelle">
-            <input name="email" type="email" required autoComplete="email" />
+            <input
+              name="email"
+              type="email"
+              required
+              maxLength={254}
+              autoComplete="off"
+            />
           </Field>
+          <PasswordField
+            label="Mot de passe initial"
+            name="password"
+            value={password}
+            onChange={setPassword}
+          />
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => setPassword(generatePassword())}
+          >
+            <RefreshCw size={17} />
+            Générer un mot de passe sécurisé
+          </Button>
           {demo && (
             <Notice>
-              Mode démonstration : aucun email réel ne sera envoyé.
+              La création de comptes réels est désactivée en démonstration.
             </Notice>
           )}
           <div className="actions">
-            <Button variant="secondary" type="button" onClick={onClose}>
+            <Button variant="secondary" type="button" onClick={close}>
               Annuler
             </Button>
-            <Button>
-              <Mail size={17} />
-              Envoyer l’invitation
+            <Button type="submit" disabled={demo}>
+              <UserPlus size={17} />
+              Créer le compte professeur
             </Button>
           </div>
         </AsyncForm>
@@ -3204,6 +3341,7 @@ const auditNames: Record<string, string> = {
   admission_rejected: "Admission refusée",
   subject_access_granted: "Accès matière accordé",
   subject_access_revoked: "Accès matière retiré",
+  teacher_created: "Compte professeur créé",
   teacher_assigned: "Professeur affecté",
   teacher_unassigned: "Affectation retirée",
   class_saved: "Classe enregistrée",

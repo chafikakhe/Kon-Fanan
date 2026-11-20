@@ -46,7 +46,7 @@ create role anon;
 create role authenticated;
 create role service_role bypassrls;
 create schema auth;
-create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,deleted_at timestamptz,raw_user_meta_data jsonb default '{}');
+create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,deleted_at timestamptz,raw_user_meta_data jsonb default '{}',raw_app_meta_data jsonb default '{}');
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
 create function auth.role() returns text language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'role','') $$;
 grant usage on schema auth to anon,authenticated,service_role;
@@ -1542,6 +1542,245 @@ await rejects(
   "Énoncé PDF d’un exercice déjà remis reste protégé contre les ajouts",
 );
 await root();
+// Direct teacher provisioning: exercise the real signup trigger in PostgreSQL.
+const preserved = await sql(
+  "select to_jsonb(t) as row from public.teaching_spaces t order by id",
+);
+const oldAccounts = await sql(
+  "select to_jsonb(a) as row from public.account_access a order by user_id",
+);
+await db.exec(
+  await readFile(
+    new URL(
+      "../supabase/migrations/0007_teacher_accounts.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+);
+check(true, "Migration comptes professeurs appliquée");
+const newTeacher = uid(9001);
+async function provisionTeacher(
+  id,
+  creator = admin,
+  names = { first_name: "Nadia", last_name: "Benali" },
+) {
+  // Match GoTrue Admin's transaction: insert first, then apply app_metadata.
+  await db.exec("begin");
+  try {
+    await sql(
+      "insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) values($1,$2,now(),$3)",
+      [id, `teacher-${id}@example.test`, JSON.stringify(names)],
+    );
+    await sql("update auth.users set raw_app_meta_data=$2 where id=$1", [
+      id,
+      JSON.stringify({ kon_fanan_teacher: { created_by: creator } }),
+    ]);
+    await db.exec("commit");
+  } catch (error) {
+    await db.exec("rollback");
+    throw error;
+  }
+}
+
+await provisionTeacher(newTeacher);
+const insertedTeacher = uid(9002);
+await sql(
+  "insert into auth.users(id,email,raw_user_meta_data,raw_app_meta_data) values($1,$2,$3,$4)",
+  [
+    insertedTeacher,
+    "teacher-insert@example.test",
+    JSON.stringify({ first_name: "Amine", last_name: "Recette" }),
+    JSON.stringify({ kon_fanan_teacher: { created_by: admin } }),
+  ],
+);
+check(
+  (
+    await one("select role from public.account_access where user_id=$1", [
+      insertedTeacher,
+    ])
+  ).role === "teacher",
+  "Métadonnées présentes dès insertion également prises en charge",
+);
+await sql("update public.profiles set display_name='Nom modifié' where id=$1", [
+  insertedTeacher,
+]);
+await sql(
+  "update public.account_access set status='suspended' where user_id=$1",
+  [insertedTeacher],
+);
+await sql(
+  "update auth.users set raw_app_meta_data=raw_app_meta_data || '{\"another_provider\":true}'::jsonb where id=$1",
+  [insertedTeacher],
+);
+check(
+  (
+    await one("select display_name from public.profiles where id=$1", [
+      insertedTeacher,
+    ])
+  ).display_name === "Nom modifié" &&
+    (
+      await one("select status from public.account_access where user_id=$1", [
+        insertedTeacher,
+      ])
+    ).status === "suspended",
+  "Mise à jour Auth ultérieure ne réinitialise ni profil ni suspension",
+);
+const newProfile = await one("select * from public.profiles where id=$1", [
+  newTeacher,
+]);
+check(
+  newProfile.display_name === "Nadia Benali" &&
+    newProfile.first_name === "Nadia" &&
+    newProfile.last_name === "Benali",
+  "Nom, prénom et profil créés par le trigger Auth",
+);
+check(
+  (
+    await one("select * from public.account_access where user_id=$1", [
+      newTeacher,
+    ])
+  ).status === "active",
+  "Accès professeur immédiatement actif",
+);
+check(
+  (
+    await one(
+      "select * from private.audit_events where resource_id=$1 and action='teacher_created'",
+      [newTeacher],
+    )
+  ).actor_id === admin,
+  "Création auditée sans identifiants secrets",
+);
+await as(newTeacher);
+check(
+  await call("is_active_role", ["teacher"]),
+  "Le nouveau compte possède immédiatement le rôle professeur",
+);
+await rejects(
+  () => call("authorize_teacher_creation", [admin]),
+  /permission denied/,
+  "Un professeur ne peut pas appeler la commande serveur de création",
+);
+await as(student);
+await rejects(
+  () => call("authorize_teacher_creation", [admin]),
+  /permission denied/,
+  "Un étudiant ne peut pas appeler la commande serveur de création",
+);
+await as(null, "anon");
+await rejects(
+  () => call("authorize_teacher_creation", [admin]),
+  /permission denied/,
+  "Un visiteur ne peut pas appeler la commande serveur de création",
+);
+await as(null, "service_role");
+check(
+  await call("authorize_teacher_creation", [admin]),
+  "Le serveur autorise un administrateur actif",
+);
+await rejects(
+  () => call("authorize_teacher_creation", [teacher]),
+  /ACCESS_DENIED/,
+  "Le serveur refuse un créateur non administrateur",
+);
+await root();
+for (const [i, creator] of [teacher, student, suspended, uid(9999)].entries()) {
+  const rejectedId = uid(9010 + i);
+  await rejects(
+    () => provisionTeacher(rejectedId, creator),
+    /ACCESS_DENIED/,
+    "Le trigger refuse un créateur sans accès admin actif",
+  );
+  check(
+    !(await one("select 1 from auth.users where id=$1", [rejectedId])),
+    "Création refusée : aucune identité Auth résiduelle",
+  );
+}
+const spoofedId = uid(9020);
+await sql(
+  "insert into auth.users(id,email,raw_user_meta_data) values($1,$2,$3)",
+  [
+    spoofedId,
+    "spoof@example.test",
+    JSON.stringify({
+      first_name: "Faux",
+      last_name: "Admin",
+      role: "teacher",
+      status: "active",
+      kon_fanan_teacher: { created_by: admin },
+    }),
+  ],
+);
+const spoofedAccess = await one(
+  "select * from public.account_access where user_id=$1",
+  [spoofedId],
+);
+check(
+  spoofedAccess.role === "student" && spoofedAccess.status === "pending",
+  "Les métadonnées utilisateur ne permettent pas de créer un professeur",
+);
+const invalidId = uid(9030);
+await rejects(
+  () =>
+    provisionTeacher(invalidId, admin, { first_name: "", last_name: "Benali" }),
+  /INVALID_REQUEST/,
+  "Profil invalide refusé",
+);
+check(
+  !(await one("select 1 from auth.users where id=$1", [invalidId])),
+  "Échec de validation du profil annule aussi le compte Auth",
+);
+const failedId = uid(9040);
+await db.exec(`create function private.test_teacher_failure() returns trigger language plpgsql as $$ begin
+  if new.id='${failedId}'::uuid then raise exception 'TEST_ACCESS_FAILURE'; end if; return new; end $$;
+  create trigger test_teacher_failure before update on public.profiles for each row execute function private.test_teacher_failure();`);
+await rejects(
+  () => provisionTeacher(failedId),
+  /TEST_ACCESS_FAILURE/,
+  "Échec injecté après création du profil",
+);
+check(
+  !(await one("select 1 from auth.users where id=$1", [failedId])) &&
+    !(await one("select 1 from public.profiles where id=$1", [failedId])) &&
+    !(await one("select 1 from public.account_access where user_id=$1", [
+      failedId,
+    ])) &&
+    !(await one("select 1 from private.audit_events where resource_id=$1", [
+      failedId,
+    ])),
+  "Échec du rôle : compte Auth, profil, accès et audit entièrement annulés",
+);
+await db.exec(
+  "drop trigger test_teacher_failure on public.profiles; drop function private.test_teacher_failure()",
+);
+assert.deepEqual(
+  await sql(
+    "select to_jsonb(t) as row from public.teaching_spaces t order by id",
+  ),
+  preserved,
+);
+assert.deepEqual(
+  await sql(
+    "select to_jsonb(a) as row from public.account_access a where user_id<>all($1::uuid[]) order by user_id",
+    [[newTeacher, insertedTeacher, spoofedId]],
+  ),
+  oldAccounts,
+);
+check(true, "Comptes existants et affectations conservés à l’identique");
+await sql(
+  "insert into private.audit_events(actor_id,action,resource_type,resource_id) select $1,'teacher_created','profile',gen_random_uuid() from generate_series(1,28)",
+  [admin],
+);
+await rejects(
+  () => provisionTeacher(uid(9050)),
+  /RATE_LIMITED/,
+  "Limite serveur de 30 créations par heure et administrateur",
+);
+check(
+  !(await one("select 1 from auth.users where id=$1", [uid(9050)])),
+  "Limite atteinte : aucune identité Auth créée",
+);
 await db.close();
 console.log(
   `\n${checks} vérifications PostgreSQL/RLS réussies. Aucun appel Google ou service Storage réel n’est simulé comme vérifié.`,

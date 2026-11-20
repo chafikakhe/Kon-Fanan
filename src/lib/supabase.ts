@@ -16,6 +16,17 @@ export const supabase = configured
     })
   : null;
 export const appURL = import.meta.env.VITE_APP_URL || window.location.origin;
+export function passwordVerificationAuth() {
+  if (!url || !key) throw Error("Supabase doit être configuré.");
+  return createClient(url, key, {
+    auth: {
+      storageKey: `kf-password-verification-${crypto.randomUUID()}`,
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  }).auth;
+}
 export function demoFileStore(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const r = indexedDB.open("kon-fanan-demo-files", 1);

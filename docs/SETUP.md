@@ -18,7 +18,7 @@ Activer la confirmation d’email, configurer un SMTP de recette, une longueur m
 - `https://APP_DOMAIN/auth/callback?retour=…` pour reprendre le choix de pack après confirmation d’email ; autoriser les paramètres de cette route sur le domaine réel.
 - `https://APP_DOMAIN/nouveau-mot-de-passe`
 
-Dans Auth, définir `Site URL` sur le domaine de l’application. Vérifier l’inscription, les liens de récupération expirés et le comportement des invitations avec un vrai email de recette.
+Dans Auth, définir `Site URL` sur le domaine de l’application. Vérifier l’inscription et les liens de récupération expirés avec un vrai email de recette. Les comptes professeurs sont créés directement, sans invitation : voir [TEACHER_ACCOUNTS.md](TEACHER_ACCOUNTS.md).
 
 Si vous changez le port de développement, adaptez aussi `VITE_APP_URL`, `APP_BASE_URL` et les URLs autorisées dans Auth. Les origines doivent correspondre exactement (protocole, nom d’hôte et port).
 
@@ -34,7 +34,7 @@ set role='admin', status='active', activated_at=now()
 where user_id='UUID_DU_COMPTE_CONFIRME';
 ```
 
-Aucun formulaire public ne permet cette opération. Utiliser ensuite l’application pour créer années/classes/matières et inviter les professeurs. Les métadonnées envoyées à l’inscription ne décident jamais du rôle. Protéger l’accès au dashboard Supabase et prévoir la récupération du compte administrateur.
+Aucun formulaire public ne permet cette opération. Utiliser ensuite l’application pour créer années/classes/matières et ajouter les professeurs. Les métadonnées utilisateur envoyées à l’inscription ne décident jamais du rôle. Protéger l’accès au dashboard Supabase et prévoir la récupération du compte administrateur.
 
 Les niveaux/matières/année de `seed.sql` peuvent être créés depuis les référentiels ou appliqués volontairement à la recette. Aucun effectif ou résultat fictif n’est déployé avec les migrations.
 

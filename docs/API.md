@@ -57,6 +57,7 @@ Les listes chargent des pages API bornées à 100 lignes et proposent un afficha
 | `save_profile` | `p_display_name text,p_language text default 'fr'` |
 | `dashboard_counts` | `` |
 | `admin_directory` | `p_limit int default 100,p_offset int default 0` |
+| `authorize_teacher_creation` | `p_admin_id uuid` — service serveur uniquement, accès admin actif et limite de créations |
 
 ## Edge Functions
 
@@ -64,7 +65,8 @@ Appel frontend : `supabase.functions.invoke(nom, { body })`. Réponse `{ data, r
 
 | Fonction | Corps | Résultat utile |
 |---|---|---|
-| `teacher-invite` | `email, displayName` | Invitation Auth tracée |
+| `teacher-create` | `firstName, lastName, email, password` | Admin actif uniquement ; `{ profile, account }`, aucun mot de passe dans la réponse ; doublon HTTP 409 |
+| `teacher-invite` | ancien contrat retiré | HTTP 410 après contrôle admin, aucun email envoyé |
 | `files-prepare` | `targetType, targetId, originalName, mimeType, sizeBytes` | Réservation `id, bucket, object_path` |
 | `files-finalize` | `fileId` | Métadonnées du fichier validé |
 | `files-read-url` | `fileId` | `url, expiresIn` |

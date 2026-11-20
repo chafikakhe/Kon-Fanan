@@ -43,6 +43,8 @@ verify_jwt = false
 verify_jwt = true
 [functions.teacher-invite]
 verify_jwt = true
+[functions.teacher-create]
+verify_jwt = true
 [functions.google-oauth-start]
 verify_jwt = true
 [functions.google-status]

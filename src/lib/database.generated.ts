@@ -1121,6 +1121,8 @@ export type Database = {
       };
       profiles: {
         Row: {
+          first_name: string | null;
+          last_name: string | null;
           created_at: string;
           display_name: string;
           id: string;
@@ -1128,6 +1130,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          first_name?: string | null;
+          last_name?: string | null;
           created_at?: string;
           display_name: string;
           id: string;
@@ -1135,6 +1139,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          first_name?: string | null;
+          last_name?: string | null;
           created_at?: string;
           display_name?: string;
           id?: string;
@@ -1431,6 +1437,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      authorize_teacher_creation: {
+        Args: { p_admin_id: string };
+        Returns: boolean;
+      };
       admin_directory: {
         Args: { p_limit?: number; p_offset?: number };
         Returns: {

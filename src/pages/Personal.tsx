@@ -17,7 +17,9 @@ import {
   Tabs,
 } from "../components/ui";
 import { date, initials, roleLabel, rolePath } from "../lib/utils";
-import { supabase, appURL } from "../lib/supabase";
+import { supabase, passwordVerificationAuth } from "../lib/supabase";
+import { PasswordField } from "../components/PasswordField";
+import { changeAccountPassword } from "../lib/passwords";
 const notificationLabels: Record<string, string> = {
   pack_active: "Ton pack est actif",
   pack_rejected: "Une réponse à ta demande de pack",
@@ -143,10 +145,8 @@ export function Notifications() {
   );
 }
 export function Profile() {
-  const { data, user, updateProfile, logout, demo } = useApp();
-  const [tab, setTab] = useState("Informations"),
-    [error, setError] = useState(""),
-    [resetSent, setResetSent] = useState(false);
+  const { data, user, updateProfile, logout } = useApp();
+  const [tab, setTab] = useState("Informations");
   const enrollment = data.class_enrollments.find(
       (e) => e.student_id === user!.id && e.status === "active",
     ),
@@ -232,50 +232,11 @@ export function Profile() {
             </AsyncForm>
           ) : (
             <div className="stack">
-              <div className="security-block">
-                <LockKeyhole size={24} />
-                <div>
-                  <h2>Mot de passe</h2>
-                  <p>
-                    Un lien de récupération permet de choisir un nouveau mot de
-                    passe en toute sécurité.
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="secondary"
-                disabled={demo || resetSent}
-                onClick={async () => {
-                  try {
-                    if (!supabase) return;
-                    const r = await supabase.auth.resetPasswordForEmail(
-                      user!.email,
-                      { redirectTo: `${appURL}/nouveau-mot-de-passe` },
-                    );
-                    if (r.error) throw r.error;
-                    setResetSent(true);
-                  } catch (e) {
-                    setError((e as Error).message);
-                  }
-                }}
-              >
-                Recevoir un lien de modification
-              </Button>
-              {resetSent && (
-                <Notice tone="success">
-                  Un lien de récupération a été envoyé.
-                </Notice>
-              )}
-              {demo && (
-                <Notice>
-                  Les emails de sécurité sont désactivés dans la démonstration.
-                </Notice>
-              )}
+              <PasswordSecurity />
               <Button variant="ghost" onClick={() => void logout()}>
                 <LogOut size={17} />
                 Se déconnecter
               </Button>
-              {error && <Notice tone="error">{error}</Notice>}
             </div>
           )}
         </Panel>
@@ -283,6 +244,75 @@ export function Profile() {
     </>
   );
 }
+function PasswordSecurity() {
+  const { demo } = useApp();
+  const [current, setCurrent] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  return (
+    <AsyncForm
+      success="Votre mot de passe a été modifié. Utilisez le nouveau mot de passe lors de votre prochaine connexion."
+      onSubmit={async () => {
+        if (demo || !supabase)
+          throw Error(
+            "La modification du mot de passe nécessite un compte Supabase réel.",
+          );
+        try {
+          await changeAccountPassword(
+            supabase.auth,
+            current,
+            password,
+            confirmation,
+            passwordVerificationAuth(),
+          );
+        } finally {
+          setCurrent("");
+          setPassword("");
+          setConfirmation("");
+        }
+      }}
+    >
+      <div className="security-block">
+        <LockKeyhole size={24} />
+        <div>
+          <h2>Mon compte / Sécurité</h2>
+          <p>
+            Modifiez votre mot de passe personnel. L’administration ne peut pas
+            le consulter.
+          </p>
+        </div>
+      </div>
+      <PasswordField
+        label="Mot de passe actuel"
+        name="current-password"
+        value={current}
+        onChange={setCurrent}
+        current
+      />
+      <PasswordField
+        label="Nouveau mot de passe"
+        name="new-password"
+        value={password}
+        onChange={setPassword}
+      />
+      <PasswordField
+        label="Confirmer le nouveau mot de passe"
+        name="confirm-password"
+        value={confirmation}
+        onChange={setConfirmation}
+      />
+      {demo && (
+        <Notice>
+          La modification du mot de passe est désactivée en démonstration.
+        </Notice>
+      )}
+      <Button type="submit" disabled={demo}>
+        Modifier le mot de passe
+      </Button>
+    </AsyncForm>
+  );
+}
+
 export function Legal() {
   const isPrivacy = window.location.pathname === "/confidentialite";
   return (
@@ -340,8 +370,8 @@ export function Legal() {
             <p>
               L’inscription étudiante est soumise à confirmation de l’email et à
               validation de l’administration. Les contenus accessibles dépendent
-              de la classe et des matières autorisées. Les professeurs sont
-              invités par l’administration.
+              de la classe et des matières autorisées. Les comptes professeurs
+              sont créés par l’administration.
             </p>
             <h2>Travail personnel</h2>
             <p>
