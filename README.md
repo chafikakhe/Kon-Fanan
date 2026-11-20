@@ -83,6 +83,8 @@ npm run preview
 
 Publier `dist/` sur un hébergeur SPA. Les fichiers `_redirects` et `_headers` sont fournis pour les hébergeurs compatibles ; configurer l’équivalent ailleurs. Adapter la CSP si un domaine Supabase personnalisé est utilisé. Le backend, les secrets, les redirections Auth, les emails, le consentement Google et le worker se configurent séparément : [SETUP.md](docs/SETUP.md).
 
+Sur Vercel, `vercel.json` réécrit les URL vers `index.html` pour permettre l’ouverture directe et le rechargement des routes React (`/connexion`, `/admin/professeurs`, `/prof/groupes`, etc.). Le fichier `_redirects` seul n’est pas une configuration de routage Vercel. Les fichiers statiques existants restent servis normalement. Voir la [configuration SPA Vite de Vercel](https://vercel.com/docs/frameworks/frontend/vite#using-vite-to-make-spas).
+
 ## Organisation
 
 ```text
