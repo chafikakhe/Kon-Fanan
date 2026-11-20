@@ -34,6 +34,8 @@ npm run build
 
 Redéployer aussi `teacher-invite` retire l’ancien endpoint d’envoi d’invitations (HTTP 410). L’historique des invitations et les comptes existants sont conservés. Aucun nouveau secret n’est nécessaire : URL Supabase, clé publique, clés Edge habituelles et origines autorisées existantes. Conserver la confirmation des emails pour les inscriptions étudiantes. La copie automatique et Web Crypto nécessitent un contexte sécurisé (HTTPS ou localhost).
 
+Le domaine publié doit figurer dans `APP_ALLOWED_ORIGINS` (origines exactes séparées par des virgules). Pour ce projet, `https://kon-fanan.vercel.app` y est autorisé. Après un changement de domaine, vérifier un preflight `OPTIONS` avec son en-tête `Origin` : le statut 204 seul ne suffit pas, `Access-Control-Allow-Origin` doit aussi correspondre au domaine.
+
 Les types de profils et de la nouvelle RPC ont été adaptés localement dans `database.generated.ts` ; ils pourront être régénérés depuis le schéma une fois la migration déployée.
 
 ## Vérifications

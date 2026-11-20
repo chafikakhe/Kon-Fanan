@@ -75,3 +75,9 @@ supabase db push --linked --dry-run
 supabase db push --linked --yes
 supabase functions deploy teacher-create teacher-invite --use-api --jobs 1
 ```
+
+### Correction CORS du domaine Vercel
+
+Le domaine publié `https://kon-fanan.vercel.app` était absent de `APP_ALLOWED_ORIGINS` : le preflight répondait HTTP 204 sans `Access-Control-Allow-Origin`, bloquant la création dans le navigateur. Le secret a été mis à jour par CLI pour ajouter ce domaine en conservant localhost et l’origine LAN existante. La copie locale ignorée de ce paramètre a également été synchronisée.
+
+Vérifications distantes : les preflights de `teacher-create`, `teacher-invite`, `files-prepare` et `google-status` autorisent maintenant exactement le domaine Vercel ; localhost reste autorisé et une origine étrangère reste sans autorisation CORS. Aucun compte créé lors de ces contrôles.
