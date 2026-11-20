@@ -68,4 +68,6 @@ npm run test:auth:integration
 
 L’URL par défaut est `http://127.0.0.1:54321` (`KF_AUTH_TEST_URL` permet un autre port local). Le script refuse une URL distante, crée uniquement ses identités de recette et les nettoie. Il teste réellement Auth Admin, l’email confirmé, les rôles, le doublon, le refus des non-administrateurs, la vérification du mot de passe actuel, le changement, le refus de l’ancien et la connexion avec le nouveau. Aucun identifiant secret n’est imprimé.
 
-Dans l’environnement de cette implémentation, cette dernière recette n’a pas pu démarrer : aucune instance Supabase locale ni ses clés de test n’étaient disponibles. La migration et les fonctions n’ont pas été déployées sur le projet distant par cette intervention.
+Cette recette Auth réelle n’a pas pu démarrer pendant l’implémentation : aucune instance Supabase locale ni ses clés de test n’étaient disponibles.
+
+Le 20 novembre 2026, la migration `0007` a été appliquée par CLI au projet lié `wzjbamzlwchaqkcoascj`, puis `teacher-create` et `teacher-invite` ont été déployées. Les deux fonctions sont `ACTIVE` avec vérification JWT. Les colonnes de noms, le trigger et les droits de la RPC serveur ont été vérifiés en base ; les deux endpoints refusent les appels sans session avec HTTP 401. Aucun compte de recette distant n’a été créé et le parcours authentifié complet reste à valider avec un compte de recette. Voir [DEPLOYMENT.md](DEPLOYMENT.md).

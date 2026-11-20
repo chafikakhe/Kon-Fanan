@@ -77,7 +77,7 @@ Les listes font des lectures API bornées à 100 lignes avec chargement volontai
 Lors de la recette initiale, aucun projet Supabase, SMTP, secret Google ou compte Google de recette n’avait été fourni. **La base et les 15 fonctions ont depuis été déployées sur le projet fourni : voir [DEPLOYMENT.md](DEPLOYMENT.md).** Les essais de services réels suivants restent distincts du déploiement :
 
 1. Déploiement des migrations et fonctions sur Supabase hébergé : effectué, vérifié par l’historique distant et l’état ACTIVE des fonctions.
-2. Emails de confirmation/récupération et recette des comptes professeurs créés directement, sans invitation : [TEACHER_ACCOUNTS.md](TEACHER_ACCOUNTS.md). La migration `0007` et les fonctions associées restent à déployer ; les contrôles locaux sont distincts d’une recette Auth réelle.
+2. Emails de confirmation/récupération et recette des comptes professeurs créés directement, sans invitation : [TEACHER_ACCOUNTS.md](TEACHER_ACCOUNTS.md). La migration `0007` et les fonctions associées ont été déployées le 20 novembre 2026 ; les contrôles locaux et les vérifications distantes de schéma/permissions restent distincts d’une recette Auth authentifiée complète.
 3. Téléversement Storage distant, URL signées et reprise sur réseau mobile réel.
 4. Consentement OAuth Google, création/modification/annulation d’un événement Calendar et ouverture d’un vrai Meet.
 5. Quotas, renouvellement/révocation réels des tokens, configuration et supervision du worker planifié.

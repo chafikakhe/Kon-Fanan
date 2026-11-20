@@ -61,3 +61,17 @@ Le frontend n’a pas été publié sur un hébergeur par cette opération. L’
 - Lors d’un hébergement du frontend, remplacer l’origine locale dans `VITE_APP_URL`, `APP_BASE_URL` et les URLs Auth.
 
 Ce déploiement confirme la présence de la base et des fonctions. Il ne vaut pas une recette d’email, un upload authentifié réel ou un essai Google Meet de bout en bout.
+
+## Comptes professeurs — 20 novembre 2026
+
+- Migration `0007_teacher_accounts.sql` appliquée sur le projet lié après un dry-run confirmant qu’elle était la seule migration en attente. Aucun seed ni reset exécuté.
+- Fonctions `teacher-create` (version 1) et `teacher-invite` (version 5, ancien parcours retiré) déployées par API ; toutes deux `ACTIVE`, `verify_jwt=true`.
+- Vérification SQL distante : migration présente, colonnes `first_name`/`last_name` présentes, trigger `kon_fanan_teacher` actif, exécution de `authorize_teacher_creation(uuid)` autorisée à `service_role` et refusée à `anon`/`authenticated`.
+- Les deux endpoints répondent HTTP 401 sans session. Aucun compte distant créé pour cette vérification ; le parcours Auth authentifié complet reste à recetter.
+- Le frontend n’a pas été publié par cette opération.
+
+```sh
+supabase db push --linked --dry-run
+supabase db push --linked --yes
+supabase functions deploy teacher-create teacher-invite --use-api --jobs 1
+```
