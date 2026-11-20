@@ -129,6 +129,8 @@ test("admission avec matière explicite, puis révocation", async ({ page }) => 
   ).toBeVisible();
 });
 test("remise mobile puis correction privée et publiée", async ({ page }) => {
+  // The seeded exercise closes on 6 November 2026; keep this success path stable.
+  await page.clock.setFixedTime(new Date("2026-11-01T12:00:00Z"));
   await page.setViewportSize({ width: 390, height: 844 });
   await login(page, "student");
   await page.goto(`/etudiant/exercices/${id(120)}`);
@@ -322,6 +324,7 @@ test("création de classe et publication complète cours/exercice", async ({
 test("envoi interrompu : fichiers validés conservés, retrait et reprise possibles", async ({
   page,
 }) => {
+  await page.clock.setFixedTime(new Date("2026-11-01T12:00:00Z"));
   await page.addInitScript(() => {
     const original = IDBObjectStore.prototype.put;
     IDBObjectStore.prototype.put = function (
@@ -360,14 +363,11 @@ test("envoi interrompu : fichiers validés conservés, retrait et reprise possib
   await page
     .getByRole("button", { name: "Retirer interrompu.png", exact: true })
     .click();
-  await page
-    .locator("input[type=file]")
-    .first()
-    .setInputFiles({
-      name: "nouvelle-copie.png",
-      mimeType: "image/png",
-      buffer,
-    });
+  await page.locator("input[type=file]").first().setInputFiles({
+    name: "nouvelle-copie.png",
+    mimeType: "image/png",
+    buffer,
+  });
   await page
     .getByRole("button", { name: "Envoyer mon travail", exact: true })
     .click();
@@ -376,4 +376,39 @@ test("envoi interrompu : fichiers validés conservés, retrait et reprise possib
       name: "Ton travail est entre de bonnes mains.",
     }),
   ).toBeVisible();
+});
+
+test("remise hors délai refusée avec une erreur accessible et le fichier conservé", async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date("2026-11-06T17:00:01Z"));
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page, "student");
+  await page.goto(`/etudiant/exercices/${id(120)}`);
+  await page
+    .locator("input[type=file]")
+    .first()
+    .setInputFiles("tests/fixtures/photo.png");
+  await page
+    .getByRole("button", { name: "Envoyer mon travail", exact: true })
+    .click();
+
+  const error = page.getByRole("alert");
+  await expect(error).toContainText("La date limite de remise est dépassée.");
+  await expect(page.getByText("photo.png", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Ton travail est entre de bonnes mains.",
+    }),
+  ).toHaveCount(0);
+  await error.scrollIntoViewIfNeeded();
+  const report = await new AxeBuilder({ page })
+    .withTags(["wcag2a", "wcag2aa"])
+    .analyze();
+  expect(
+    report.violations.map((v) => ({
+      id: v.id,
+      targets: v.nodes.map((n) => n.target),
+    })),
+  ).toEqual([]);
 });

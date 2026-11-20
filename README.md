@@ -61,14 +61,14 @@ npm run test:sql
 npm run check:edge
 npm run test:edge
 npx playwright install chromium
-KF_TEST_PORT=5281 VITE_SUPABASE_URL= VITE_SUPABASE_PUBLISHABLE_KEY= npm run test:e2e
+KF_TEST_PORT=5281 npm run test:e2e
 ```
 
 Les tests SQL exécutent les migrations dans PostgreSQL WASM/PGlite avec des identités `anon`, `student`, `teacher`, `admin` et `service_role`. Les services Auth/Storage sont représentés par un schéma de test ; les appels réseau aux fournisseurs ne sont pas couverts par ce test.
 
-La commande navigateur ci-dessus utilise une démonstration isolée sur un port distinct du serveur réel, sans modifier `.env`.
+Playwright démarre une démonstration isolée sur un port distinct du serveur réel, sans modifier `.env`. Sa configuration neutralise les variables Supabase pour ce processus et refuse de réutiliser un serveur existant ; choisir un port libre avec `KF_TEST_PORT`.
 
-Les tests navigateur vérifient les trois rôles à 360, 390, 768, 1024 et 1440 px, les admissions, le dépôt/correction, l’isolation des routes et des contrôles axe. Le serveur de test utilise `127.0.0.1:5279`. Les captures de contrôle se trouvent dans `screenshots/`.
+Les tests navigateur vérifient les trois rôles à 360, 390, 768, 1024 et 1440 px, les admissions, le dépôt/correction, l’isolation des routes et des contrôles axe. Les scénarios de dépôt fixent l’horloge du navigateur avant ou après l’échéance du jeu de démonstration, pour tester explicitement la réussite et le refus sans dépendre de la date d’exécution. Sans `KF_TEST_PORT`, le serveur de test utilise `127.0.0.1:5279`. Les captures de contrôle se trouvent dans `screenshots/`.
 
 ## Déployer
 

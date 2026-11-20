@@ -235,7 +235,7 @@ export function StudentDashboard() {
                   Reprendre le cours <ArrowRight size={18} />
                 </ButtonLink>
               </div>
-              <div className="dashboard-math-art">
+              <div className="dashboard-math-art" aria-hidden="true">
                 <span className="formula-one">3x + 5 = 20</span>
                 <span className="formula-two">x = 5</span>
                 <svg viewBox="0 0 180 180">

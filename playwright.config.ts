@@ -13,7 +13,9 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
     url: `http://127.0.0.1:${port}`,
-    reuseExistingServer: true,
+    // Browser tests always run against isolated demo data, never a real account.
+    env: { VITE_SUPABASE_URL: "", VITE_SUPABASE_PUBLISHABLE_KEY: "" },
+    reuseExistingServer: false,
   },
   reporter: [["list"], ["html", { open: "never" }]],
 });

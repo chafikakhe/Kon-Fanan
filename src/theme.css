@@ -1,0 +1,50 @@
+/* Shared palette. Glass is reserved for outer surfaces; nested content is opaque. */
+:root {
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --surface-subtle: #f1f5f9;
+  --surface-glass: rgba(255, 255, 255, 0.88);
+  --surface-reading: rgba(255, 255, 255, 0.92);
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-soft: #eff6ff;
+  --on-primary: #ffffff;
+  --secondary: #0f766e;
+  --secondary-soft: #f0fdfa;
+  --accent: #fbbf24;
+  --accent-soft: #fffbeb;
+  --accent-text: #0f172a;
+  --accent-border: #fbbf24;
+  --text: #0f172a;
+  --text-secondary: #475569;
+  --border: #e2e8f0;
+  /* Stronger than decorative borders to identify form controls at 3:1. */
+  --control-border: #64748b;
+  --error: #dc2626;
+  /* Keep the requested red above 4.5:1 for small error messages. */
+  --error-soft: #fffafa;
+  --success: #15803d;
+  --success-soft: #f0fdf4;
+  --success-border: #86efac;
+  --overlay: rgba(15, 23, 42, 0.48);
+  --shadow-soft: 0 8px 28px rgba(30, 64, 175, 0.07);
+  --shadow-modal: 0 24px 80px rgba(30, 64, 175, 0.16);
+  --page-gradient:
+    radial-gradient(
+      ellipse at 12% 8%,
+      rgba(219, 234, 254, 0.65),
+      transparent 48%
+    ),
+    radial-gradient(
+      ellipse at 90% 35%,
+      rgba(204, 251, 241, 0.35),
+      transparent 45%
+    ),
+    linear-gradient(var(--background), var(--background));
+  --cover-gradient: linear-gradient(120deg, #eff6ff, #f0fdfa);
+  /* Guarantees dark text remains readable over the existing photography. */
+  --photo-overlay: linear-gradient(
+    rgba(248, 250, 252, 0.9),
+    rgba(248, 250, 252, 0.82)
+  );
+}

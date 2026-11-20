@@ -8,6 +8,7 @@ import "@fontsource/manrope/latin-800.css";
 import "@fontsource/barlow-condensed/latin-700.css";
 import "@fontsource/barlow-condensed/latin-800.css";
 import App from "./app";
+import "./theme.css";
 import "./styles.css";
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
