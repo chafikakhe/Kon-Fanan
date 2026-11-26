@@ -115,3 +115,83 @@ test("le lancement respecte la préférence de réduction des animations", async
       .evaluate((e) => getComputedStyle(e).animationName),
   ).toBe("none");
 });
+
+test("le CTA reste sous les matières pour un visiteur, un admin ou un professeur", async ({
+  page,
+}) => {
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const role of ["admin", "teacher"] as const) {
+      await page.goto("/");
+      await page.evaluate(
+        (role) => sessionStorage.setItem("kf-demo-role", role),
+        role,
+      );
+      await page.goto(
+        `/packs?level=${level}&pack=pack-1&subjects=00000000-0000-4000-8000-000000000040`,
+      );
+      const action = page
+        .locator(".pack-selection-action")
+        .getByRole("button", {
+          name: "Continuer vers l’inscription",
+          exact: true,
+        });
+      await expect(action).toBeEnabled();
+      await expect(
+        page.locator(".payment-options").getByRole("button"),
+      ).toHaveCount(0);
+      await expect(action).toHaveCount(1);
+      await action.scrollIntoViewIfNeeded();
+      expect(
+        await action.evaluate(
+          (element) => element.getBoundingClientRect().height,
+        ),
+      ).toBeGreaterThanOrEqual(52);
+      expect(
+        await page.evaluate(() => document.documentElement.scrollWidth),
+      ).toBeLessThanOrEqual(width);
+      await page.screenshot({
+        path: `/tmp/motafawiq-pack-cta-${role}-${width}.png`,
+        fullPage: true,
+      });
+      await action.click();
+      const dialog = page.getByRole("dialog", {
+        name: "Continuer avec un compte étudiant",
+      });
+      await expect(dialog).toBeVisible();
+      expect(
+        await page.evaluate(() => sessionStorage.getItem("kf-demo-role")),
+      ).toBe(role);
+      await dialog
+        .getByRole("button", { name: "Rester sur ce compte", exact: true })
+        .click();
+      await expect(dialog).toHaveCount(0);
+      expect(
+        await page.evaluate(() => sessionStorage.getItem("kf-demo-role")),
+      ).toBe(role);
+      await action.click();
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: "Créer un compte étudiant", exact: true })
+        .click();
+      await expect(page).toHaveURL(/\/inscription\?etape=compte$/);
+      await expect(page.getByLabel("Nom complet")).toBeVisible();
+      await expect(
+        page.getByLabel("Numéro WhatsApp", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByLabel("Ton choix de pack et de matières"),
+      ).toContainText("Mathématiques");
+      expect(
+        await page.evaluate(() => sessionStorage.getItem("kf-demo-role")),
+      ).toBeNull();
+      const checkout = await page.evaluate(() =>
+        localStorage.getItem("kf-checkout-return"),
+      );
+      expect(checkout).toContain("pack=pack-1");
+      expect(checkout).toContain(
+        "subjects=00000000-0000-4000-8000-000000000040",
+      );
+    }
+  }
+});

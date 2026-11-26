@@ -7737,9 +7737,17 @@ textarea:user-invalid {
   margin: 20px 0;
   color: var(--text);
 }
-.payment-options > .button {
+.pack-selection-action {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border);
+}
+.pack-selection-action > .button {
   width: 100%;
-  margin-top: 18px;
+  min-height: 52px;
+}
+.pack-selection-action > p {
+  margin: 12px 0 0;
 }
 @media (max-width: 760px) {
   .level-choice-grid {

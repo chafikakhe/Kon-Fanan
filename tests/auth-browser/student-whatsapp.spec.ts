@@ -30,11 +30,12 @@ async function fixture(page: Page, mode: "signup" | "admin") {
   let signup: any, reset: any, order: any;
   const emailCalls: string[] = [];
   if (mode === "admin")
-    await page.addInitScript(
-      (value) =>
-        localStorage.setItem("sb-auth-auth-token", JSON.stringify(value)),
-      session(adminId),
-    );
+    await page.addInitScript((value) => {
+      if (!localStorage.getItem("fixture-auth-initialized")) {
+        localStorage.setItem("sb-auth-auth-token", JSON.stringify(value));
+        localStorage.setItem("fixture-auth-initialized", "true");
+      }
+    }, session(adminId));
   await page.addInitScript(() => {
     (window as any).__credentials = "";
     Object.defineProperty(navigator, "clipboard", {
@@ -261,4 +262,54 @@ test("admin : acceptation, WhatsApp, nouveau mot de passe à affichage unique", 
   await expect(field).toHaveCount(0);
   await page.reload();
   await expect(field).toHaveCount(0);
+});
+
+test("un admin peut continuer l’inscription étudiante sans perdre la sélection", async ({
+  page,
+}) => {
+  const state = await fixture(page, "admin");
+  const logoutScopes: (string | null)[] = [];
+  page.on("request", (request) => {
+    const url = new URL(request.url());
+    if (url.pathname === "/auth/v1/logout")
+      logoutScopes.push(url.searchParams.get("scope"));
+  });
+  await page.goto(
+    `/packs?level=${demoID(32)}&pack=pack-1&subjects=${demoID(40)}`,
+  );
+  const action = page.getByRole("button", {
+    name: "Continuer vers l’inscription",
+    exact: true,
+  });
+  await expect(action).toBeEnabled();
+  const before = await page.evaluate(() =>
+    localStorage.getItem("sb-auth-auth-token"),
+  );
+  await action.click();
+  await expect(
+    page.getByRole("dialog", { name: "Continuer avec un compte étudiant" }),
+  ).toBeVisible();
+  expect(logoutScopes).toEqual([]);
+  expect(
+    await page.evaluate(() => localStorage.getItem("sb-auth-auth-token")),
+  ).toBe(before);
+  await page
+    .getByRole("button", { name: "Créer un compte étudiant", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/inscription\?etape=compte$/);
+  await expect(page.getByLabel("Nom complet")).toBeVisible();
+  await expect(
+    page.getByLabel("Numéro WhatsApp", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Ton choix de pack et de matières"),
+  ).toContainText("Mathématiques");
+  expect(logoutScopes).toEqual(["local"]);
+  expect(
+    await page.evaluate(() => localStorage.getItem("sb-auth-auth-token")),
+  ).toBeNull();
+  expect(state.values().order).toBeUndefined();
+  expect(state.values().signup).toBeUndefined();
+  await page.reload();
+  await expect(page.getByLabel("Nom complet")).toBeVisible();
 });

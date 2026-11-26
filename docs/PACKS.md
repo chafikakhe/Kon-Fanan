@@ -22,7 +22,9 @@ Les packs incluent les cours, exercices et lives des matières sélectionnées �
 
 ## Achat et règlement
 
-Aucun prestataire de paiement n’existait dans le projet. Le mode livré est **demande avec vérification administrative du règlement**. L’interface l’annonce avant envoi et après enregistrement. Elle n’affiche jamais un paiement réussi à partir d’un clic ou d’une URL.
+Aucun prestataire de paiement n’existait dans le projet. Le bouton de poursuite est placé directement sous les matières, en pleine largeur, avant les informations de paiement sur mobile. Il reste visible avec une session administrateur ou professeur ; dans ce cas, un choix explicite permet de créer un compte étudiant ou de se connecter à un compte étudiant. La déconnexion est locale, la sélection est conservée et aucune commande ne peut être envoyée au nom du compte administrateur/professeur.
+
+Le mode livré est **demande avec vérification administrative du règlement**. L’interface l’annonce avant envoi et après enregistrement. Elle n’affiche jamais un paiement réussi à partir d’un clic ou d’une URL.
 
 1. Choix du pack, nombre exact de matières et récapitulatif du prix total.
 2. Inscription Supabase avec nom, email, mot de passe et WhatsApp, sans confirmation par email. L’inscription ne nécessite pas de classe choisie à l’avance. Un lien « Se connecter » permet aux comptes existants de reprendre les mêmes choix.

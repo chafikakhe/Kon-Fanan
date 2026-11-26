@@ -335,7 +335,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setData(scopeDemo(source.current, u));
     sessionStorage.setItem("kf-demo-role", role);
   }
-  async function logout() {
+  async function logout(scope: "local" | "global" = "global") {
+    if (!demo && scope === "local") {
+      const result = await supabase!.auth.signOut({ scope: "local" });
+      if (result.error)
+        throw Error(
+          "La déconnexion n’a pas abouti. Réessaie pour continuer avec un compte étudiant.",
+        );
+    }
     ++generation.current;
     userRef.current = null;
     setUser(null);
@@ -344,7 +351,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     reservations.current = new WeakMap();
     setError("");
     sessionStorage.removeItem("kf-demo-role");
-    if (!demo) await supabase?.auth.signOut();
+    if (!demo && scope !== "local") await supabase?.auth.signOut();
   }
   async function upload(
     file: File,

@@ -26,6 +26,7 @@ import {
   Field,
   Loading,
   Logo,
+  Modal,
   Notice,
   PageHeader,
   Panel,
@@ -41,7 +42,7 @@ import {
   type Journey,
   type PackOrder,
 } from "../lib/packs";
-import { date, errorMessage, rolePath } from "../lib/utils";
+import { date, errorMessage, roleLabel, rolePath } from "../lib/utils";
 import { EnrollmentSteps } from "../components/EnrollmentStart";
 
 export function DiscoveryLayout() {
@@ -407,13 +408,22 @@ export function PacksPage() {
   const location = useLocation(),
     navigate = useNavigate(),
     j = readJourney(location.search),
-    { user, loading: accountLoading, mutate, refresh, demo, data } = useApp();
+    {
+      user,
+      loading: accountLoading,
+      mutate,
+      refresh,
+      logout,
+      demo,
+      data,
+    } = useApp();
   const { catalog, loading, error, retry } = useCatalog(j);
   const [busy, setBusy] = useState(false),
     [selection, setSelection] = useState<string[] | null>(j.subjects ?? null),
     [failure, setFailure] = useState(""),
     [order, setOrder] = useState<PackOrder | null>(null),
-    [checking, setChecking] = useState(false);
+    [checking, setChecking] = useState(false),
+    [switchAccount, setSwitchAccount] = useState(false);
   const orderId = new URLSearchParams(location.search).get("order");
   const orderContext = useRef("");
   const subjectsSection = useRef<HTMLDivElement>(null);
@@ -509,6 +519,10 @@ export function PacksPage() {
       },
       url = journeyURL("/packs", checkout);
     rememberCheckout(url);
+    if (user && user.role !== "student") {
+      setSwitchAccount(true);
+      return;
+    }
     if (!user) {
       navigate("/inscription?etape=compte");
       return;
@@ -808,6 +822,34 @@ export function PacksPage() {
                         autre niveau ou un autre pack.
                       </Notice>
                     )}
+                    <div className="pack-selection-action">
+                      <Button
+                        disabled={
+                          !valid ||
+                          busy ||
+                          (user?.role === "student" &&
+                            !["pending", "active"].includes(user.status))
+                        }
+                        onClick={() => void continueOrder()}
+                      >
+                        {busy
+                          ? "Enregistrement…"
+                          : user?.role === "student"
+                            ? "Envoyer ma demande d’achat"
+                            : "Continuer vers l’inscription"}
+                        <ArrowRight size={19} aria-hidden="true" />
+                      </Button>
+                      <p className="small-text">
+                        {user?.role === "student" &&
+                        !["pending", "active"].includes(user.status)
+                          ? "Contacte l’administration pour rétablir ton compte avant de demander un pack."
+                          : !valid
+                            ? `Sélectionne ${offer.subject_count} matière${offer.subject_count > 1 ? "s" : ""} pour continuer.`
+                            : user?.role === "student"
+                              ? "Ta demande sera transmise à l’administration pour validation du paiement."
+                              : "Étape suivante : tes informations. Ton pack et tes matières seront conservés."}
+                      </p>
+                    </div>
                   </Panel>
                   <Panel title="Modes de paiement" className="payment-options">
                     <ul
@@ -848,40 +890,65 @@ export function PacksPage() {
                         : "de la matière choisie"}
                       .
                     </Notice>
-                    {user && user.role !== "student" ? (
-                      <Notice>
-                        Les achats de packs sont réservés aux comptes étudiants.
-                      </Notice>
-                    ) : user && !["pending", "active"].includes(user.status) ? (
-                      <Notice>
-                        Contacte l’administration pour rétablir ton compte avant
-                        de demander un pack.
-                      </Notice>
-                    ) : (
-                      <Button
-                        disabled={!valid || busy}
-                        onClick={() => void continueOrder()}
-                      >
-                        {busy
-                          ? "Enregistrement…"
-                          : user
-                            ? "Envoyer ma demande d’achat"
-                            : "Continuer vers l’inscription"}
-                        <ArrowRight size={17} />
-                      </Button>
-                    )}
-                    {!user && (
-                      <p className="small-text">
-                        Crée ton compte à la prochaine étape. Ton choix sera
-                        conservé.
-                      </p>
-                    )}
                   </Panel>
                 </div>
               )}
             </div>
           )}
         </>
+      )}
+      {switchAccount && user && user.role !== "student" && (
+        <Modal
+          title="Continuer avec un compte étudiant"
+          onClose={() => {
+            if (!busy) setSwitchAccount(false);
+          }}
+        >
+          <p>
+            Tu es connecté avec un compte {roleLabel(user.role).toLowerCase()}.
+            Pour inscrire un élève, continue avec un compte étudiant.
+          </p>
+          <p>
+            Tu seras déconnecté de ce compte. Ton pack et tes matières resteront
+            sélectionnés.
+          </p>
+          {failure && <Notice tone="error">{failure}</Notice>}
+          <div className="stack">
+            {[
+              ["Créer un compte étudiant", "/inscription?etape=compte"],
+              ["Se connecter à un compte étudiant", "/connexion"],
+            ].map(([label, path], index) => (
+              <Button
+                key={path}
+                variant={index === 0 ? "primary" : "secondary"}
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  setFailure("");
+                  try {
+                    await logout("local");
+                    setSwitchAccount(false);
+                    navigate(path);
+                  } catch (error) {
+                    setFailure(errorMessage(error));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {label}
+                <ArrowRight size={17} aria-hidden="true" />
+              </Button>
+            ))}
+            <Button
+              variant="ghost"
+              disabled={busy}
+              onClick={() => setSwitchAccount(false)}
+            >
+              Rester sur ce compte
+            </Button>
+          </div>
+        </Modal>
       )}
     </div>
   );

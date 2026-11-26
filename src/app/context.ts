@@ -12,7 +12,7 @@ export interface AppContext {
   invoke: <T = any>(name: string, body?: Params) => Promise<T>;
   notify: (s: string) => void;
   loginDemo: (role: Role) => void;
-  logout: () => Promise<void>;
+  logout: (scope?: "local" | "global") => Promise<void>;
   upload: (
     file: File,
     targetType: string,
