@@ -68,3 +68,9 @@ Avant publication, autoriser l’URL Auth `/auth/callback` et ses paramètres de
 Pour interrompre les nouvelles ventes, suspendre les trois offres dans `/admin/packs`. Pour revenir à l’ancienne interface, restaurer le frontend précédent **en conservant la migration, les commandes et les fonctions de droits** : les achats actifs continuent ainsi de fonctionner et les droits historiques restent inchangés. Ne pas supprimer les tables de commandes ni restaurer l’ancienne version de `has_subject_access`, ce qui retirerait des droits achetés. Toute suppression définitive nécessite un plan séparé de conservation et de remboursement.
 
 Les index couvrent les lectures par étudiant/statut/niveau et la file des demandes en attente. Suivre les demandes anciennes en attente, les références de règlement et l’audit administratif. Aucune planification d’expiration n’est nécessaire puisqu’aucune durée n’a été définie.
+
+## Boîte Admissions
+
+`admissionInbox` réunit les demandes de classe historiques, les demandes de packs et les comptes étudiants en attente qui n’ont pas encore envoyé de choix. Un compte créé par le parcours pack ne crée pas de `admission_requests` avec une classe inventée : sa commande réelle apparaît directement dans Admissions. Les compteurs et les demandes récentes du tableau de bord utilisent la même liste. Une ancienne demande de classe en attente remplacée par un pack plus récent n’est pas comptée deux fois.
+
+« Vérifier le règlement » ouvre `/admin/packs?order=…` sur la demande exacte. Le dossier étudiant montre le pack, ses matières, son niveau et le contact WhatsApp, même sans inscription à une classe. Après validation administrative du paiement, le pack passe dans les demandes acceptées. Aucun compte n’est activé par l’affichage de cette liste ; aucune réparation ni duplication des commandes existantes n’est nécessaire.

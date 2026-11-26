@@ -23,6 +23,7 @@ import {
   Plug,
   UserRound,
 } from "lucide-react";
+import { admissionInbox } from "../lib/admissions";
 import type { Role } from "../lib/types";
 import { rolePath, roleLabel, initials } from "../lib/utils";
 import { MoreData } from "../components/MoreData";
@@ -98,6 +99,10 @@ export function Guard({ role }: { role?: Role }) {
 }
 export function Layout() {
   const { user, demo, data, logout, loginDemo, error, refresh } = useApp();
+  const pendingAdmissions =
+    user?.role === "admin"
+      ? admissionInbox(data).filter((item) => item.status === "pending").length
+      : 0;
   const [menu, setMenu] = useState(false);
   const [isMobile, setMobile] = useState(
     () => window.matchMedia("(max-width:760px)").matches,
@@ -215,16 +220,9 @@ export function Layout() {
             >
               <Icon size={19} />
               <span>{label}</span>
-              {path === "/admissions" &&
-                data.admission_requests.some((a) => a.status === "pending") && (
-                  <span className="nav-count">
-                    {
-                      data.admission_requests.filter(
-                        (a) => a.status === "pending",
-                      ).length
-                    }
-                  </span>
-                )}
+              {path === "/admissions" && pendingAdmissions > 0 && (
+                <span className="nav-count">{pendingAdmissions}</span>
+              )}
             </NavLink>
           ))}
         </nav>

@@ -20,6 +20,7 @@ import {
   Copy,
   Settings2,
 } from "lucide-react";
+import { admissionInbox, admissionDestination } from "../lib/admissions";
 import { useApp } from "../app/AppProvider";
 import {
   AsyncForm,
@@ -290,7 +291,7 @@ function AccountStatusAction({ id, status }: { id: string; status: string }) {
 
 export function AdminDashboard() {
   const { data, stats } = useApp();
-  const pending = data.admission_requests.filter((a) => a.status === "pending");
+  const pending = admissionInbox(data).filter((a) => a.status === "pending");
   const year = data.academic_years.find((y) => y.is_current);
   const alerts = data.meetings.filter(
     (m) => m.status === "error" || m.sync_status === "error",
@@ -340,7 +341,7 @@ export function AdminDashboard() {
         <Metric
           icon={<UserPlus />}
           label="Demandes en attente"
-          value={stats.admissions ?? pending.length}
+          value={pending.length}
           hint="À examiner individuellement"
         />
       </div>
@@ -358,12 +359,9 @@ export function AdminDashboard() {
               <div key={a.id} className="list-row">
                 <Person
                   name={nameOf(data, a.student_id)}
-                  subtitle={classOf(data, a.requested_class_id)}
+                  subtitle={admissionDestination(data, a)}
                 />
-                <ButtonLink
-                  variant="secondary"
-                  to={`/admin/admissions/${a.id}`}
-                >
+                <ButtonLink variant="secondary" to={a.href}>
                   Examiner <ChevronRight size={16} />
                 </ButtonLink>
               </div>
@@ -472,27 +470,28 @@ export function Admissions() {
   const { data } = useApp();
   const [tab, setTab] = useState("pending"),
     [query, setQuery] = useState(""),
-    [classId, setClass] = useState(""),
+    [levelId, setLevel] = useState(""),
     [page, setPage] = useState(1);
-  const list = data.admission_requests
+  const inbox = admissionInbox(data);
+  const list = inbox
     .filter(
       (a) =>
         a.status === tab &&
-        (!classId || a.requested_class_id === classId) &&
-        nameOf(data, a.student_id)
+        (!levelId || a.level_id === levelId) &&
+        `${nameOf(data, a.student_id)} ${data.profiles.find((p) => p.id === a.student_id)?.email || ""}`
           .toLocaleLowerCase("fr")
           .includes(query.toLocaleLowerCase("fr")),
     )
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
-  useEffect(() => setPage(1), [tab, query, classId]);
+  useEffect(() => setPage(1), [tab, query, levelId]);
   return (
     <>
       <PageHeader
         eyebrow="ACCUEILLIR LES TALENTS"
         title="Demandes d’admission"
-        description="Examinez chaque dossier et attribuez les matières adaptées."
+        description="Retrouvez les inscriptions, les demandes de packs et les admissions à une classe."
       />
-      <div className="split-layout">
+      <div className="stack">
         <Panel>
           <Tabs
             value={tab}
@@ -500,7 +499,7 @@ export function Admissions() {
             options={[
               {
                 value: "pending",
-                label: `En attente (${data.admission_requests.filter((a) => a.status === "pending").length})`,
+                label: `En attente (${inbox.filter((a) => a.status === "pending").length})`,
               },
               { value: "accepted", label: "Acceptées" },
               { value: "rejected", label: "Refusées" },
@@ -512,7 +511,18 @@ export function Admissions() {
               onChange={setQuery}
               placeholder="Rechercher un étudiant…"
             />
-            <SelectClass value={classId} onChange={setClass} />
+            <select
+              aria-label="Niveau scolaire"
+              value={levelId}
+              onChange={(event) => setLevel(event.target.value)}
+            >
+              <option value="">Tous les niveaux</option>
+              {data.levels.map((level) => (
+                <option key={level.id} value={level.id}>
+                  {level.label}
+                </option>
+              ))}
+            </select>
           </div>
           {list.length ? (
             <div className="table-wrap">
@@ -520,7 +530,8 @@ export function Admissions() {
                 <thead>
                   <tr>
                     <th>Étudiant</th>
-                    <th>Classe souhaitée</th>
+                    <th>Niveau / classe</th>
+                    <th>Inscription</th>
                     <th>Demande</th>
                     <th>Statut</th>
                     <th>
@@ -532,21 +543,32 @@ export function Admissions() {
                   {list.slice((page - 1) * SIZE, page * SIZE).map((a) => (
                     <tr key={a.id}>
                       <td data-label="Étudiant">
-                        <Person name={nameOf(data, a.student_id)} />
+                        <Person
+                          name={nameOf(data, a.student_id)}
+                          subtitle={
+                            data.profiles.find(
+                              (profile) => profile.id === a.student_id,
+                            )?.email
+                          }
+                        />
                       </td>
-                      <td data-label="Classe souhaitée">
-                        {classOf(data, a.requested_class_id)}
+                      <td data-label="Niveau / classe">
+                        {admissionDestination(data, a)}
                       </td>
+                      <td data-label="Inscription">{a.label}</td>
                       <td data-label="Demande">{date(a.created_at)}</td>
                       <td data-label="Statut">
-                        <Badge status={a.status} />
+                        <Badge status={a.source_status} />
                       </td>
                       <td>
-                        <ButtonLink
-                          to={`/admin/admissions/${a.id}`}
-                          variant="secondary"
-                        >
-                          {tab === "pending" ? "Examiner" : "Voir le dossier"}
+                        <ButtonLink to={a.href} variant="secondary">
+                          {tab !== "pending"
+                            ? "Voir le dossier"
+                            : a.kind === "pack"
+                              ? "Vérifier le règlement"
+                              : a.kind === "registration"
+                                ? "Compléter le dossier"
+                                : "Examiner"}
                         </ButtonLink>
                       </td>
                     </tr>
@@ -563,18 +585,27 @@ export function Admissions() {
           <Pagination page={page} total={list.length} onChange={setPage} />
         </Panel>
         <Panel title="Avant d’accepter">
-          <ol className="steps-list">
+          <ol className="steps-list grid-3">
             <li>
-              <strong>La bonne classe</strong>
-              <p>Vérifiez le niveau et les places disponibles.</p>
+              <strong>Le choix de l’étudiant</strong>
+              <p>
+                Vérifiez le niveau, le pack et les matières demandées, ou la
+                classe souhaitée.
+              </p>
             </li>
             <li>
-              <strong>Les bonnes matières</strong>
-              <p>Choisissez au moins une matière pour ouvrir l’accès.</p>
+              <strong>Le règlement du pack</strong>
+              <p>
+                Vérifiez le paiement et sa référence avant d’activer les
+                matières choisies.
+              </p>
             </li>
             <li>
-              <strong>Un accueil clair</strong>
-              <p>Ajoutez un message si l’étudiant a besoin d’une précision.</p>
+              <strong>Le contact WhatsApp</strong>
+              <p>
+                Le numéro de l’étudiant est disponible dans son dossier pour le
+                prévenir après validation.
+              </p>
             </li>
           </ol>
           <Notice>
@@ -1593,6 +1624,9 @@ export function StudentDetail() {
     [pending, setPending] = useState<Record<string, boolean>>({}),
     [confirm, setConfirm] = useState(false),
     [transfer, setTransfer] = useState(false);
+  const packOrders = data.pack_orders
+    .filter((order) => order.student_id === id)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
   const existing = subjectAccess(data, enrollment?.id);
   const cs = data.class_subjects.filter(
     (s) => s.class_id === enrollment?.class_id && s.is_active,
@@ -1741,14 +1775,61 @@ export function StudentDetail() {
                     </Button>
                   </div>
                 </AsyncForm>
+              ) : packOrders.length ? (
+                <div className="stack">
+                  <Notice>
+                    Les accès aux matières dépendent des packs validés par
+                    l’administration. Les demandes en attente n’ouvrent aucun
+                    accès.
+                  </Notice>
+                  {packOrders.map((order) => (
+                    <div className="inner-card" key={order.id}>
+                      <h3>
+                        {order.pack_name} · {Number(order.total_price)} DH
+                      </h3>
+                      <Badge status={order.status} />
+                      <p>
+                        {
+                          data.levels.find(
+                            (level) => level.id === order.level_id,
+                          )?.label
+                        }
+                      </p>
+                      <p>
+                        {order.subject_ids
+                          .map(
+                            (subjectId) =>
+                              data.subjects.find(
+                                (subject) => subject.id === subjectId,
+                              )?.label || "Matière",
+                          )
+                          .join(" · ")}
+                      </p>
+                      <ButtonLink
+                        to={`/admin/packs?order=${order.id}`}
+                        variant="secondary"
+                      >
+                        {order.status === "pending_review"
+                          ? "Vérifier le règlement"
+                          : "Voir le pack"}
+                      </ButtonLink>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <Empty
                   title="Aucune inscription active"
-                  description="Examinez la demande d’admission de cet étudiant pour attribuer une classe."
+                  description={
+                    data.admission_requests.some((a) => a.student_id === id)
+                      ? "Examinez la demande d’admission de cet étudiant pour attribuer une classe."
+                      : "L’étudiant n’a pas encore envoyé de choix de pack ou de classe. Contactez-le pour compléter son inscription."
+                  }
                   action={
-                    <ButtonLink variant="secondary" to="/admin/admissions">
-                      Voir les demandes
-                    </ButtonLink>
+                    data.admission_requests.some((a) => a.student_id === id) ? (
+                      <ButtonLink variant="secondary" to="/admin/admissions">
+                        Voir les demandes
+                      </ButtonLink>
+                    ) : undefined
                   }
                 />
               )}

@@ -110,6 +110,20 @@ async function fixture(page: Page, mode: "signup" | "admin") {
       data.pack_orders.push(row as any);
       return respond(row);
     }
+    if (url.pathname === "/rest/v1/rpc/review_pack_order") {
+      const input = request.postDataJSON();
+      const row = data.pack_orders.find(
+        (order) => order.id === input.p_order_id,
+      )!;
+      row.status = input.p_decision;
+      row.reviewed_at = new Date().toISOString();
+      row.payment_reference = input.p_payment_reference;
+      if (input.p_decision === "active")
+        data.account_access.find(
+          (account) => account.user_id === row.student_id,
+        )!.status = "active";
+      return respond(row);
+    }
     if (url.pathname === "/rest/v1/rpc/admin_directory")
       return respond(data.profiles.map(({ id, email }) => ({ id, email })));
     if (url.pathname === "/rest/v1/rpc/decide_admission") {
@@ -146,7 +160,7 @@ async function fixture(page: Page, mode: "signup" | "admin") {
       `Unexpected fixture request ${request.method()} ${url.pathname}`,
     );
   });
-  return { values: () => ({ signup, reset, order, emailCalls }) };
+  return { data, values: () => ({ signup, reset, order, emailCalls }) };
 }
 
 test("inscription avec WhatsApp : compte en traitement sans email ni accès actif", async ({
@@ -312,4 +326,121 @@ test("un admin peut continuer l’inscription étudiante sans perdre la sélecti
   expect(state.values().signup).toBeUndefined();
   await page.reload();
   await expect(page.getByLabel("Nom complet")).toBeVisible();
+});
+
+test("une inscription par pack apparaît dans Admissions sans demande de classe", async ({
+  page,
+}) => {
+  const state = await fixture(page, "admin");
+  const data = state.data;
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  data.admission_requests = [];
+  data.profiles.find((profile) => profile.id === studentId)!.display_name =
+    "smail";
+  const packOrder = {
+    id: demoID(995),
+    student_id: studentId,
+    pack_id: "pack-1",
+    pack_name: "Pack 1",
+    subject_count: 1,
+    total_price: 100,
+    currency: "MAD",
+    level_id: demoID(32),
+    subject_ids: [demoID(40)],
+    status: "pending_review",
+    course_id: null,
+    exercise_id: null,
+    idempotency_key: "admission-fixture",
+    reviewed_at: null,
+    reviewed_by: null,
+    payment_reference: null,
+    created_at: new Date().toISOString(),
+  } as any;
+  data.pack_orders.push(packOrder);
+  await page.goto("/admin");
+  await expect(
+    page.getByRole("heading", { name: "Vue d’ensemble", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /Admissions/ }).locator(".nav-count"),
+  ).toHaveText("2");
+  await expect(
+    page.locator(".panel").filter({
+      has: page.getByRole("heading", {
+        name: "Demandes récentes",
+        exact: true,
+      }),
+    }),
+  ).toContainText("smail");
+  await page.goto("/admin/admissions");
+  await page.getByPlaceholder("Rechercher un étudiant…").fill("smail");
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const row = page.getByRole("row").filter({ hasText: "smail" });
+    await expect(row).toHaveCount(1);
+    await expect(row).toContainText("Pack 1 · 100 DH");
+    await expect(
+      row.getByRole("link", { name: "Vérifier le règlement", exact: true }),
+    ).toHaveAttribute("href", `/admin/packs?order=${packOrder.id}`);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(width + 1);
+    await page.screenshot({
+      path: `/tmp/motafawiq-admission-packs-${width}.png`,
+      fullPage: true,
+    });
+  }
+  expect(data.admission_requests).toHaveLength(0);
+  expect(
+    data.account_access.find((account) => account.user_id === studentId)!
+      .status,
+  ).toBe("pending");
+  await page
+    .getByRole("link", { name: "Vérifier le règlement", exact: true })
+    .click();
+  await expect(page).toHaveURL(
+    new RegExp(`/admin/packs\\?order=${packOrder.id}$`),
+  );
+  await expect(page.getByRole("heading", { name: /smail/ })).toBeVisible();
+  await expect(page.getByText("Mathématiques", { exact: true })).toBeVisible();
+  await page
+    .getByRole("link", {
+      name: "Voir le dossier et le contact WhatsApp",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "smail", exact: true, level: 1 }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Numéro WhatsApp de l’étudiant", { exact: true }),
+  ).toHaveValue("+212612345678");
+  await page
+    .getByRole("link", { name: "Vérifier le règlement", exact: true })
+    .click();
+  await page.getByLabel("Référence du règlement vérifié").fill("RECU-TEST-100");
+  await page
+    .getByRole("checkbox", { name: /J’ai vérifié le règlement de 100 DH/ })
+    .check();
+  await page
+    .getByRole("button", {
+      name: "Valider le règlement et activer",
+      exact: true,
+    })
+    .click();
+  await expect(page.locator(".badge.active")).toBeVisible();
+  expect(
+    data.account_access.find((account) => account.user_id === studentId)!
+      .status,
+  ).toBe("active");
+  await page.goto("/admin/admissions");
+  await page.getByPlaceholder("Rechercher un étudiant…").fill("smail");
+  await expect(page.getByRole("row").filter({ hasText: "smail" })).toHaveCount(
+    0,
+  );
+  await page.getByRole("tab", { name: "Acceptées", exact: true }).click();
+  await expect(
+    page.getByRole("row").filter({ hasText: "smail" }),
+  ).toContainText("Pack 1");
+  expect(data.admission_requests).toHaveLength(0);
 });

@@ -1,33 +1,86 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useApp } from "../app/AppProvider";
 import {
   AsyncForm,
   Badge,
   Button,
+  ButtonLink,
   Empty,
   Field,
+  Loading,
   Notice,
   PageHeader,
   Panel,
   Tabs,
 } from "../components/ui";
 import { date } from "../lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import type { PackOrder } from "../lib/packs";
 export default function PacksAdmin() {
   const { data, mutate, demo, hasMore, loadMore } = useApp(),
     [tab, setTab] = useState("À vérifier"),
     [error, setError] = useState("");
-  const orders = data.pack_orders
+  const [params] = useSearchParams();
+  const orderId = params.get("order");
+  const [remoteOrder, setRemoteOrder] = useState<PackOrder | null>(null);
+  const [loadingOrder, setLoadingOrder] = useState(false);
+  useEffect(() => {
+    setRemoteOrder(null);
+    setLoadingOrder(false);
+    if (
+      !orderId ||
+      demo ||
+      data.pack_orders.some((order) => order.id === orderId)
+    )
+      return;
+    let live = true;
+    setLoadingOrder(true);
+    void supabase!
+      .from("pack_orders")
+      .select("*")
+      .eq("id", orderId)
+      .maybeSingle()
+      .then(({ data: order, error }) => {
+        if (!live) return;
+        if (error)
+          setError(
+            "Impossible de charger cette demande. Actualisez la page pour réessayer.",
+          );
+        else setRemoteOrder(order as PackOrder | null);
+        setLoadingOrder(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [orderId, data.pack_orders, demo]);
+  const orders = [
+    ...data.pack_orders,
+    ...(remoteOrder &&
+    !data.pack_orders.some((order) => order.id === remoteOrder.id)
+      ? [remoteOrder]
+      : []),
+  ]
     .filter((o) =>
-      tab === "À vérifier"
-        ? o.status === "pending_review"
-        : o.status !== "pending_review",
+      orderId
+        ? o.id === orderId
+        : tab === "À vérifier"
+          ? o.status === "pending_review"
+          : o.status !== "pending_review",
     )
     .sort((a, b) => b.created_at.localeCompare(a.created_at));
   return (
     <>
       <PageHeader
         title="Packs et achats"
+        back={orderId ? "/admin/admissions" : undefined}
+        action={
+          orderId ? (
+            <ButtonLink variant="secondary" to="/admin/packs">
+              Toutes les demandes
+            </ButtonLink>
+          ) : undefined
+        }
         eyebrow="VALIDATION ADMINISTRATIVE"
         description="Vérifiez le règlement hors application avant toute activation. Les prix affichés sont les prix totaux des packs."
       />
@@ -37,40 +90,44 @@ export default function PacksAdmin() {
         référence de règlement vérifiable.
       </Notice>
       {error && <Notice tone="error">{error}</Notice>}
-      <div className="pack-grid">
-        {data.pack_offers.map((p) => (
-          <Panel key={p.id}>
-            <h2>{p.name}</h2>
-            <p>
-              {p.subject_count} matière{p.subject_count > 1 ? "s" : ""} ·{" "}
-              {Number(p.total_price)} DH au total
-            </p>
-            <Badge status={p.is_active ? "active" : "archived"} />
-            <Button
-              variant="secondary"
-              onClick={async () => {
-                try {
-                  await mutate("set_pack_availability", {
-                    p_pack_id: p.id,
-                    p_active: !p.is_active,
-                  });
-                } catch (e) {
-                  setError((e as Error).message);
-                }
-              }}
-            >
-              {p.is_active
-                ? "Suspendre les nouvelles demandes"
-                : "Ouvrir les demandes"}
-            </Button>
-          </Panel>
-        ))}
-      </div>
-      <Tabs
-        options={["À vérifier", "Historique"]}
-        value={tab}
-        onChange={setTab}
-      />
+      {!orderId && (
+        <div className="pack-grid">
+          {data.pack_offers.map((p) => (
+            <Panel key={p.id}>
+              <h2>{p.name}</h2>
+              <p>
+                {p.subject_count} matière{p.subject_count > 1 ? "s" : ""} ·{" "}
+                {Number(p.total_price)} DH au total
+              </p>
+              <Badge status={p.is_active ? "active" : "archived"} />
+              <Button
+                variant="secondary"
+                onClick={async () => {
+                  try {
+                    await mutate("set_pack_availability", {
+                      p_pack_id: p.id,
+                      p_active: !p.is_active,
+                    });
+                  } catch (e) {
+                    setError((e as Error).message);
+                  }
+                }}
+              >
+                {p.is_active
+                  ? "Suspendre les nouvelles demandes"
+                  : "Ouvrir les demandes"}
+              </Button>
+            </Panel>
+          ))}
+        </div>
+      )}
+      {!orderId && (
+        <Tabs
+          options={["À vérifier", "Historique"]}
+          value={tab}
+          onChange={setTab}
+        />
+      )}
       <div className="stack">
         {orders.map((o) => (
           <Panel
@@ -194,8 +251,12 @@ export default function PacksAdmin() {
           </Panel>
         ))}
       </div>
-      {!orders.length && <Empty title="Aucune demande dans cette liste" />}
-      {hasMore.pack_orders && (
+      {loadingOrder ? (
+        <Loading />
+      ) : (
+        !orders.length && <Empty title="Aucune demande dans cette liste" />
+      )}
+      {!orderId && hasMore.pack_orders && (
         <Button onClick={() => void loadMore("pack_orders")}>
           Charger d’autres demandes
         </Button>

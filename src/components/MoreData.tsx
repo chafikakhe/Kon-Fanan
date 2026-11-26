@@ -10,7 +10,14 @@ export function MoreData() {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const mapping: Record<string, (keyof Data)[]> = {
-    admissions: ["admission_requests", "profiles", "account_access"],
+    admissions: [
+      "admission_requests",
+      "pack_orders",
+      "profiles",
+      "account_access",
+      "student_contacts",
+      "levels",
+    ],
     classes: [
       "classes",
       "class_subjects",
@@ -21,6 +28,8 @@ export function MoreData() {
     etudiants: [
       "profiles",
       "account_access",
+      "pack_orders",
+      "student_contacts",
       "class_enrollments",
       "student_subject_access",
     ],
