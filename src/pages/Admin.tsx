@@ -45,6 +45,7 @@ import {
   statusLabel,
 } from "../lib/utils";
 import { PasswordField } from "../components/PasswordField";
+import { StudentContact } from "../components/StudentContact";
 import { generatePassword } from "../lib/passwords";
 import type {
   CreatedTeacher,
@@ -738,6 +739,7 @@ export function AdmissionDetail() {
           )}
         </Panel>
       </div>
+      <StudentContact key={a.student_id} studentId={a.student_id} />
       {reject && (
         <Modal title="Refuser cette demande" onClose={() => setReject(false)}>
           <p>
@@ -1633,33 +1635,36 @@ export function StudentDetail() {
         }
       />
       <div className="split-layout reverse">
-        <Panel title="Profil étudiant">
-          <div className="stack">
-            <div className="avatar avatar-lg">
-              {initials(profile.display_name)}
+        <div className="stack">
+          <Panel title="Profil étudiant">
+            <div className="stack">
+              <div className="avatar avatar-lg">
+                {initials(profile.display_name)}
+              </div>
+              <h2>{profile.display_name}</h2>
+              {profile.email && <p>{profile.email}</p>}
+              <dl className="detail-list">
+                <div>
+                  <dt>Classe</dt>
+                  <dd>{classOf(data, enrollment?.class_id)}</dd>
+                </div>
+                <div>
+                  <dt>Année scolaire</dt>
+                  <dd>
+                    {data.academic_years.find(
+                      (y) => y.id === enrollment?.academic_year_id,
+                    )?.label || "Non attribuée"}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Admission</dt>
+                  <dd>{date(enrollment?.joined_at)}</dd>
+                </div>
+              </dl>
             </div>
-            <h2>{profile.display_name}</h2>
-            {profile.email && <p>{profile.email}</p>}
-            <dl className="detail-list">
-              <div>
-                <dt>Classe</dt>
-                <dd>{classOf(data, enrollment?.class_id)}</dd>
-              </div>
-              <div>
-                <dt>Année scolaire</dt>
-                <dd>
-                  {data.academic_years.find(
-                    (y) => y.id === enrollment?.academic_year_id,
-                  )?.label || "Non attribuée"}
-                </dd>
-              </div>
-              <div>
-                <dt>Admission</dt>
-                <dd>{date(enrollment?.joined_at)}</dd>
-              </div>
-            </dl>
-          </div>
-        </Panel>
+          </Panel>
+          <StudentContact key={profile.id} studentId={profile.id} />
+        </div>
         <Panel>
           <Tabs
             options={["Accès aux matières", "Historique"]}

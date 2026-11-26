@@ -21,6 +21,7 @@ import { checkoutReturn, rememberCheckout } from "../lib/packs";
 import { StudentPacks } from "./Discovery";
 import { rolePath, roleLabel } from "../lib/utils";
 import type { Role } from "../lib/types";
+import { normalizeWhatsApp } from "../lib/whatsapp";
 import {
   Logo,
   Panel,
@@ -80,15 +81,17 @@ export default function Auth() {
     return (
       <Navigate
         to={
-          returnTo &&
-          user.role === "student" &&
-          ["pending", "active"].includes(user.status)
-            ? returnTo
-            : user.status === "active"
-              ? rolePath(user.role)
-              : user.status === "suspended"
-                ? "/compte-suspendu"
-                : "/admission"
+          signup && user.status === "pending"
+            ? "/admission"
+            : returnTo &&
+                user.role === "student" &&
+                ["pending", "active"].includes(user.status)
+              ? returnTo
+              : user.status === "active"
+                ? rolePath(user.role)
+                : user.status === "suspended"
+                  ? "/compte-suspendu"
+                  : "/admission"
         }
         replace
       />
@@ -113,12 +116,21 @@ export default function Auth() {
         email,
         password,
         options: {
-          data: { display_name: String(fd.get("name")) },
+          data: {
+            display_name: String(fd.get("name")),
+            whatsapp_number: normalizeWhatsApp(
+              String(fd.get("whatsapp") || ""),
+            ),
+            ...(!returnTo ? { requested_class_id: chosen } : {}),
+          },
           emailRedirectTo: `${appURL}/auth/callback${returnTo ? `?retour=${encodeURIComponent(returnTo)}` : ""}`,
         },
       });
       if (r.error) throw Error(r.error.message);
-      if (!returnTo) localStorage.setItem("kf-requested-class", chosen);
+      if (r.data.session) {
+        navigate("/admission", { replace: true });
+        return;
+      }
       setComplete(true);
     } else if (forgot) {
       await supabase.auth.resetPasswordForEmail(email, {
@@ -208,8 +220,8 @@ export default function Auth() {
               <Notice tone="success">
                 {signup
                   ? returnTo
-                    ? "Vérifie ta boîte email pour confirmer ton inscription. Ton pack et tes matières sont conservés pour reprendre ta demande d’achat."
-                    : "Vérifie ta boîte email pour confirmer ton inscription. Tes matières seront attribuées après validation par l’administration."
+                    ? "Ton compte est en cours de traitement. Ton choix de pack est conservé. L’administration te contactera sur WhatsApp après validation."
+                    : "Ton compte est en cours de traitement. L’administration te contactera sur WhatsApp dès sa validation."
                   : forgot
                     ? "Si un compte correspond à cette adresse, un email de récupération a été envoyé."
                     : "Ton mot de passe a été enregistré."}
@@ -254,6 +266,9 @@ export default function Auth() {
                   <span className="password-field">
                     <input
                       name="password"
+                      aria-label={
+                        reset ? "Nouveau mot de passe" : "Mot de passe"
+                      }
                       type={show ? "text" : "password"}
                       autoComplete={
                         signup || reset ? "new-password" : "current-password"
@@ -275,6 +290,23 @@ export default function Auth() {
                       {show ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </span>
+                </Field>
+              )}
+              {signup && (
+                <Field
+                  label="Numéro WhatsApp"
+                  hint="L’administration te contactera sur ce numéro après validation de ton compte."
+                >
+                  <input
+                    name="whatsapp"
+                    aria-label="Numéro WhatsApp"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    required
+                    maxLength={25}
+                    placeholder="+212 6 12 34 56 78"
+                  />
                 </Field>
               )}
               {(signup || reset) && (
@@ -322,8 +354,8 @@ export default function Auth() {
                   </label>
                   <Notice>
                     {returnTo
-                      ? "Retrouve ton choix de pack après confirmation de ton email. Tes droits seront activés après validation du règlement par l’administration."
-                      : "Ton inscription sera validée par l’administration, qui attribuera tes matières."}
+                      ? "Ton choix de pack est conservé. Tes droits seront activés après validation du règlement ; l’administration te contactera sur WhatsApp."
+                      : "Ton compte restera en cours de traitement jusqu’à la validation de l’administration. Tu recevras un message sur WhatsApp après son activation."}
                   </Notice>
                 </>
               )}
@@ -480,19 +512,21 @@ export function AuthCallback() {
   );
 }
 export function AccountState({ suspended = false }: { suspended?: boolean }) {
-  const { user, data, logout, refresh, mutate } = useApp();
+  const { user, data, loading, logout, refresh, mutate } = useApp();
   const [choices, setChoices] = useState<{ id: string; name: string }[]>([]);
   const [msg, setMsg] = useState("");
   useEffect(() => {
     if (supabase)
       void supabase.rpc("open_classes").then((r) => setChoices(r.data || []));
   }, []);
+  if (loading) return <Loading />;
   if (!user) return <Navigate to="/connexion" replace />;
   if (user.status === "active")
     return <Navigate to={rolePath(user.role)} replace />;
   const admission = data.admission_requests.find(
     (a) => a.student_id === user.id,
   );
+  const contact = data.student_contacts.find((c) => c.student_id === user.id);
   return (
     <div className="account-state auth-page">
       <div className="auth-brand">
@@ -519,7 +553,7 @@ export function AccountState({ suspended = false }: { suspended?: boolean }) {
             ? "Ton accès est temporairement suspendu."
             : user.status === "rejected"
               ? "Une réponse à ta demande."
-              : "Ton parcours est en préparation."}
+              : "Ton compte est en cours de traitement."}
         </h1>
         <p>
           {suspended
@@ -527,17 +561,44 @@ export function AccountState({ suspended = false }: { suspended?: boolean }) {
             : user.status === "rejected"
               ? admission?.public_message ||
                 "L’administration n’a pas donné suite à ta demande."
-              : "Tes cours et tes matières apparaîtront ici après validation par l’administration."}
+              : "L’administration examine ton inscription. Tu recevras un message sur ton numéro WhatsApp dès que ton compte sera validé."}
         </p>
         <div className="identity-line">
           <span className="avatar">{user.name.charAt(0)}</span>
           <strong>{user.name}</strong>
         </div>
+        {!suspended &&
+          user.status === "pending" &&
+          (contact ? (
+            <p>Numéro WhatsApp : {contact.whatsapp_number}</p>
+          ) : (
+            <AsyncForm
+              onSubmit={async (form) => {
+                await mutate("save_student_contact", {
+                  p_whatsapp_number: normalizeWhatsApp(
+                    String(new FormData(form).get("whatsapp") || ""),
+                  ),
+                });
+                setMsg("Ton numéro WhatsApp a été enregistré.");
+              }}
+            >
+              <Field label="Ton numéro WhatsApp">
+                <input
+                  name="whatsapp"
+                  type="tel"
+                  required
+                  maxLength={25}
+                  placeholder="+212 6 12 34 56 78"
+                />
+              </Field>
+              <Button type="submit">Enregistrer mon numéro WhatsApp</Button>
+            </AsyncForm>
+          ))}
         {!suspended && user.status === "pending" && (
           <ol className="admission-steps">
             <li>
               <Check size={16} />
-              Email confirmé
+              Compte créé
             </li>
             <li>
               {admission ? <Check size={16} /> : <span>2</span>}Demande{" "}

@@ -4,6 +4,8 @@ Application web React 19, TypeScript strict, Vite et React Router, avec backend 
 
 L’identité visuelle utilise le logo fourni pour **motafawiq.ma**. Régénération des logos et icônes : `npm run brand:assets`. Les variantes, identifiants conservés et réglages externes sont documentés dans [BRANDING.md](docs/BRANDING.md).
 
+Inscription étudiante avec numéro WhatsApp, compte en traitement et validation administrative sans email de confirmation : [STUDENT_WHATSAPP.md](docs/STUDENT_WHATSAPP.md).
+
 ## Lancer le projet
 
 Prérequis : Node.js ≥ 22.13 et npm.

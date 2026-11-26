@@ -15,6 +15,12 @@ export interface Account {
   role: Role;
   status: AccountStatus;
 }
+export interface StudentContact {
+  id: string;
+  student_id: string;
+  whatsapp_number: string;
+  created_at: string;
+}
 export interface CreatedTeacher {
   profile: Profile;
   account: Account;
@@ -234,6 +240,7 @@ export interface Data {
   pack_offers: PackOffer[];
   pack_orders: PackOrder[];
   profiles: Profile[];
+  student_contacts: StudentContact[];
   account_access: Account[];
   academic_years: Year[];
   levels: Level[];
@@ -262,6 +269,7 @@ export const tables: (keyof Data)[] = [
   "pack_offers",
   "pack_orders",
   "profiles",
+  "student_contacts",
   "account_access",
   "academic_years",
   "levels",

@@ -5,6 +5,7 @@ import {
   type Role,
   type Params,
 } from "./types";
+import { normalizeWhatsApp } from "./whatsapp";
 export const demoID = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const uid = () => crypto.randomUUID();
@@ -34,6 +35,14 @@ export function seedDemo(): Data {
     preferred_language: "fr",
   }));
   d.profiles.forEach((p, i) => (p.email = `person-${i + 1}@example.test`));
+  d.student_contacts = d.profiles
+    .filter((_, i) => ![1, 2, 3].includes(i))
+    .map((p, i) => ({
+      id: demoID(400 + i),
+      student_id: p.id,
+      whatsapp_number: `+21261234567${i}`,
+      created_at: now(),
+    }));
   d.account_access = d.profiles.map((p, i) => ({
     user_id: p.id,
     role: ([1, 2].includes(i)
@@ -390,7 +399,14 @@ export function scopeDemo(source: Data, user: User): Data {
   const sids = new Set(spaces.map((s) => s.id));
   if (user.status !== "active") {
     for (const key of Object.keys(d) as (keyof Data)[])
-      if (!["profiles", "account_access", "admission_requests"].includes(key))
+      if (
+        ![
+          "profiles",
+          "student_contacts",
+          "account_access",
+          "admission_requests",
+        ].includes(key)
+      )
         (d[key] as unknown[]) = [];
   } else {
     d.teaching_spaces = spaces;
@@ -469,6 +485,9 @@ export function scopeDemo(source: Data, user: User): Data {
   d.profiles = d.profiles.filter((p) => profileIDs.has(p.id));
   d.profiles = d.profiles.map(({ email, ...profile }) => profile);
   d.account_access = d.account_access.filter((a) => a.user_id === user.id);
+  d.student_contacts = (d.student_contacts || []).filter(
+    (c) => c.student_id === user.id,
+  );
   d.pack_orders = (d.pack_orders || []).filter((o) => o.student_id === user.id);
   d.admission_requests = d.admission_requests.filter(
     (a) => a.student_id === user.id,
@@ -494,6 +513,24 @@ export function scopeDemo(source: Data, user: User): Data {
 }
 export function demoMutate(d: Data, u: User, name: string, p: Params): unknown {
   const v = p as Record<string, any>; // Dynamic RPC argument boundary; domain rows remain typed.
+  if (name === "save_student_contact") {
+    const studentId = String(v.p_student_id || u.id);
+    if (u.role !== "admin" && studentId !== u.id) throw Error("ACCESS_DENIED");
+    const number = normalizeWhatsApp(String(v.p_whatsapp_number || ""));
+    const existing = d.student_contacts.find((c) => c.student_id === studentId);
+    if (existing) {
+      existing.whatsapp_number = number;
+      return existing;
+    }
+    const contact = {
+      id: uid(),
+      student_id: studentId,
+      whatsapp_number: number,
+      created_at: now(),
+    };
+    d.student_contacts.push(contact);
+    return contact;
+  }
   if (name === "request_pack_order") {
     const offer = d.pack_offers.find(
       (o) => o.id === v.p_pack_id && o.is_active,

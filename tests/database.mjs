@@ -1781,6 +1781,152 @@ check(
   !(await one("select 1 from auth.users where id=$1", [uid(9050)])),
   "Limite atteinte : aucune identité Auth créée",
 );
+await root();
+await db.exec(
+  await readFile(
+    new URL(
+      "../supabase/migrations/0008_student_whatsapp.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+);
+const whatsappStudent = uid(9900),
+  whatsappClass = uid(9903);
+await sql(
+  "insert into public.academic_years(id,label,starts_on,ends_on,status) values($1,'WhatsApp test','2026-09-01','2027-07-01','active')",
+  [uid(9901)],
+);
+await sql(
+  "insert into public.levels(id,code,label,cycle) values($1,'WA','WhatsApp test','college')",
+  [uid(9902)],
+);
+await sql(
+  "insert into public.classes(id,name,academic_year_id,level_id,capacity,status) values($1,'WhatsApp test',$2,$3,10,'active')",
+  [whatsappClass, uid(9901), uid(9902)],
+);
+await sql(
+  "insert into auth.users(id,email,email_confirmed_at,raw_user_meta_data) values($1,'whatsapp@example.test',now(),$2)",
+  [
+    whatsappStudent,
+    JSON.stringify({
+      display_name: "Test WhatsApp",
+      whatsapp_number: "+212612345678",
+      requested_class_id: whatsappClass,
+      role: "admin",
+      password: "not-copied-from-metadata",
+    }),
+  ],
+);
+check(
+  (
+    await one("select status from public.account_access where user_id=$1", [
+      whatsappStudent,
+    ])
+  ).status === "pending",
+  "Inscription sans confirmation email : compte étudiant en attente uniquement",
+);
+check(
+  Boolean(
+    await one(
+      "select 1 from public.admission_requests where student_id=$1 and status='pending'",
+      [whatsappStudent],
+    ),
+  ),
+  "Demande créée avec l’identité dans la même transaction",
+);
+check(
+  !JSON.stringify(
+    await one("select * from public.student_contacts where student_id=$1", [
+      whatsappStudent,
+    ]),
+  ).includes("password"),
+  "Aucun mot de passe copié dans les contacts",
+);
+await rejects(
+  () =>
+    sql(
+      "insert into auth.users(id,email,raw_user_meta_data) values($1,'bad-phone@example.test',$2)",
+      [uid(9904), JSON.stringify({ whatsapp_number: "invalid" })],
+    ),
+  /INVALID_WHATSAPP/,
+  "Numéro invalide refusé côté SQL",
+);
+check(
+  !(await one("select 1 from auth.users where id=$1", [uid(9904)])),
+  "Numéro invalide : insertion Auth entièrement annulée",
+);
+await as(whatsappStudent);
+check(
+  (await sql("select * from public.student_contacts")).length === 1,
+  "Le compte en attente lit uniquement son contact",
+);
+check(
+  (await call("save_student_contact", ["+212612345679", whatsappStudent]))
+    .whatsapp_number === "+212612345679",
+  "L’étudiant peut mettre à jour son propre numéro",
+);
+await rejects(
+  () => call("save_student_contact", ["+212612345678", outsider]),
+  /ACCESS_DENIED/,
+  "L’étudiant ne peut pas modifier le contact d’un autre compte",
+);
+await rejects(
+  () =>
+    sql("update public.student_contacts set whatsapp_number='+212600000000'"),
+  /permission denied/i,
+  "Aucune modification directe du contact",
+);
+await as(teacher);
+await rejects(
+  () => call("save_student_contact", ["+212612345678", whatsappStudent]),
+  /ACCESS_DENIED/,
+  "Le professeur ne peut modifier les contacts étudiants",
+);
+check(
+  (await sql("select * from public.student_contacts")).length === 0,
+  "Le professeur ne voit aucun numéro WhatsApp",
+);
+await as(outsider);
+check(
+  (await sql("select * from public.student_contacts")).length === 0,
+  "Un autre étudiant ne voit pas le numéro",
+);
+await as(admin);
+check(
+  (await sql("select * from public.student_contacts")).length === 1,
+  "L’administration active peut lire le numéro",
+);
+await rejects(
+  () => call("authorize_student_password_reset", [admin, whatsappStudent]),
+  /permission denied/i,
+  "Garde privilégiée inaccessible au navigateur admin",
+);
+await as(null, "service_role");
+await rejects(
+  () => call("authorize_student_password_reset", [admin, whatsappStudent]),
+  /ACCESS_DENIED/,
+  "Réinitialisation interdite avant activation du compte",
+);
+await root();
+await sql("update public.account_access set status='active' where user_id=$1", [
+  whatsappStudent,
+]);
+await as(null, "service_role");
+check(
+  await call("authorize_student_password_reset", [admin, whatsappStudent]),
+  "Serveur admin autorisé pour un étudiant actif",
+);
+await rejects(
+  () => call("authorize_student_password_reset", [admin, whatsappStudent]),
+  /RATE_LIMITED/,
+  "Réinitialisations répétées limitées côté serveur",
+);
+await rejects(
+  () => call("authorize_student_password_reset", [teacher, whatsappStudent]),
+  /ACCESS_DENIED/,
+  "Un professeur ne peut autoriser aucune réinitialisation",
+);
 await db.close();
 console.log(
   `\n${checks} vérifications PostgreSQL/RLS réussies. Aucun appel Google ou service Storage réel n’est simulé comme vérifié.`,

@@ -12,10 +12,10 @@ npx supabase db push
 
 Ne pas exposer `private` dans les réglages Data API ou Realtime. Les migrations créent les buckets privés `course-materials`, `student-submissions` et `announcement-materials` et leurs politiques. Les valeurs des limites serveur restent plafonnées à 5 fichiers / 30 Mo par version étudiante, 10 Mo par image et 20 Mo par PDF.
 
-Activer la confirmation d’email, configurer un SMTP de recette, une longueur minimale de mot de passe de 12 caractères et les URLs de retour exactes :
+Désactiver la confirmation d’email pour l’inscription étudiante avec validation administrative et WhatsApp : voir [STUDENT_WHATSAPP.md](STUDENT_WHATSAPP.md). Conserver une longueur minimale de mot de passe de 12 caractères. Un SMTP reste nécessaire pour utiliser la récupération par email. Configurer les URLs de retour exactes :
 
 - `https://APP_DOMAIN/auth/callback`
-- `https://APP_DOMAIN/auth/callback?retour=…` pour reprendre le choix de pack après confirmation d’email ; autoriser les paramètres de cette route sur le domaine réel.
+- `https://APP_DOMAIN/auth/callback?retour=…` pour reprendre le choix de pack ; autoriser les paramètres de cette route sur le domaine réel.
 - `https://APP_DOMAIN/nouveau-mot-de-passe`
 
 Dans Auth, définir `Site URL` sur le domaine de l’application. Vérifier l’inscription et les liens de récupération expirés avec un vrai email de recette. Les comptes professeurs sont créés directement, sans invitation : voir [TEACHER_ACCOUNTS.md](TEACHER_ACCOUNTS.md).

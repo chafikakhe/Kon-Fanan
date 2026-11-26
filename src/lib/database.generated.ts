@@ -1121,33 +1121,62 @@ export type Database = {
       };
       profiles: {
         Row: {
-          first_name: string | null;
-          last_name: string | null;
           created_at: string;
           display_name: string;
+          first_name: string | null;
           id: string;
+          last_name: string | null;
           preferred_language: string;
           updated_at: string;
         };
         Insert: {
-          first_name?: string | null;
-          last_name?: string | null;
           created_at?: string;
           display_name: string;
+          first_name?: string | null;
           id: string;
+          last_name?: string | null;
           preferred_language?: string;
           updated_at?: string;
         };
         Update: {
-          first_name?: string | null;
-          last_name?: string | null;
           created_at?: string;
           display_name?: string;
+          first_name?: string | null;
           id?: string;
+          last_name?: string | null;
           preferred_language?: string;
           updated_at?: string;
         };
         Relationships: [];
+      };
+      student_contacts: {
+        Row: {
+          created_at: string;
+          id: string;
+          student_id: string;
+          whatsapp_number: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          student_id: string;
+          whatsapp_number: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          student_id?: string;
+          whatsapp_number?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "student_contacts_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       student_subject_access: {
         Row: {
@@ -1437,10 +1466,6 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      authorize_teacher_creation: {
-        Args: { p_admin_id: string };
-        Returns: boolean;
-      };
       admin_directory: {
         Args: { p_limit?: number; p_offset?: number };
         Returns: {
@@ -1459,6 +1484,14 @@ export type Database = {
           p_teacher_id: string;
         };
         Returns: Json;
+      };
+      authorize_student_password_reset: {
+        Args: { p_admin_id: string; p_student_id: string };
+        Returns: boolean;
+      };
+      authorize_teacher_creation: {
+        Args: { p_admin_id: string };
+        Returns: boolean;
       };
       can_manage_file_target: {
         Args: { p_target_id: string; p_target_type: string };
@@ -1689,6 +1722,10 @@ export type Database = {
       };
       save_reference: {
         Args: { p_data: Json; p_id?: string; p_kind: string };
+        Returns: Json;
+      };
+      save_student_contact: {
+        Args: { p_student_id?: string; p_whatsapp_number: string };
         Returns: Json;
       };
       save_submission_draft: {
