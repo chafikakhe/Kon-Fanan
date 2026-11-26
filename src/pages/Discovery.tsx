@@ -7,7 +7,16 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { ArrowRight, BookOpen, Check, LockKeyhole, Video } from "lucide-react";
+import {
+  ArrowRight,
+  Banknote,
+  BookOpen,
+  Check,
+  Landmark,
+  LockKeyhole,
+  Video,
+  Wallet,
+} from "lucide-react";
 import { useApp } from "../app/AppProvider";
 import {
   Badge,
@@ -407,11 +416,24 @@ export function PacksPage() {
     [checking, setChecking] = useState(false);
   const orderId = new URLSearchParams(location.search).get("order");
   const orderContext = useRef("");
+  const subjectsSection = useRef<HTMLDivElement>(null);
+  const revealSubjects = useRef(false);
   orderContext.current = `${user?.id || ""}:${orderId || ""}`;
   useEffect(
     () => setSelection(readJourney(location.search).subjects ?? null),
     [location.search],
   );
+  useEffect(() => {
+    if (!loading && revealSubjects.current && subjectsSection.current) {
+      revealSubjects.current = false;
+      subjectsSection.current.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+    }
+  }, [loading, catalog?.level_id]);
   async function checkOrder() {
     const context = orderContext.current;
     setChecking(true);
@@ -685,32 +707,65 @@ export function PacksPage() {
                   Changer de pack
                 </Button>
               </div>
-              <Field label="Ton niveau scolaire">
-                <select
-                  value={level?.id || ""}
-                  onChange={(e) =>
-                    navigate(
-                      journeyURL("/packs", {
-                        level: e.target.value,
-                        pack: offer.id,
-                      }),
-                    )
-                  }
+              <section
+                className="level-picker"
+                aria-labelledby="pack-levels-title"
+              >
+                <h2 id="pack-levels-title">Ton niveau scolaire</h2>
+                <div
+                  className="level-choice-grid"
+                  role="group"
+                  aria-labelledby="pack-levels-title"
                 >
-                  <option value="">Choisir un niveau</option>
                   {catalog.levels.map((l) => (
-                    <option key={l.id} value={l.id}>
-                      {l.label}
-                    </option>
+                    <button
+                      type="button"
+                      key={l.id}
+                      className={`level-choice ${level?.id === l.id ? "selected" : ""}`}
+                      aria-label={l.label}
+                      aria-pressed={level?.id === l.id}
+                      onClick={() => {
+                        if (level?.id === l.id) {
+                          subjectsSection.current?.scrollIntoView({
+                            behavior: window.matchMedia(
+                              "(prefers-reduced-motion: reduce)",
+                            ).matches
+                              ? "auto"
+                              : "smooth",
+                            block: "start",
+                          });
+                          return;
+                        }
+                        revealSubjects.current = true;
+                        navigate(
+                          journeyURL("/packs", { level: l.id, pack: offer.id }),
+                        );
+                      }}
+                    >
+                      <span>
+                        <small>
+                          {l.cycle === "college" ? "COLLÈGE" : "LYCÉE"}
+                        </small>
+                        <strong>{l.label}</strong>
+                      </span>
+                      {level?.id === l.id ? (
+                        <Check size={20} aria-hidden="true" />
+                      ) : (
+                        <ArrowRight size={20} aria-hidden="true" />
+                      )}
+                    </button>
                   ))}
-                </select>
-              </Field>
+                </div>
+              </section>
               {!level ? (
                 <Notice>
                   Choisis ton niveau pour afficher les matières disponibles.
                 </Notice>
               ) : (
-                <div className="split-layout pack-selection">
+                <div
+                  className="split-layout pack-selection"
+                  ref={subjectsSection}
+                >
                   <Panel title="Les matières disponibles">
                     <p role="status" aria-live="polite">
                       {chosen.length}/{offer.subject_count} matière
@@ -754,17 +809,23 @@ export function PacksPage() {
                       </Notice>
                     )}
                   </Panel>
-                  <Panel title="Ton récapitulatif" className="checkout-summary">
-                    <h3>
-                      {offer.name} · {Number(offer.total_price)} DH au total
-                    </h3>
-                    <p>{level.label}</p>
-                    <ul>
-                      {chosen.map((id) => (
-                        <li key={id}>
-                          {available.find((s) => s.id === id)?.label}
-                        </li>
-                      ))}
+                  <Panel title="Modes de paiement" className="payment-options">
+                    <ul
+                      className="payment-methods"
+                      aria-label="Moyens de paiement acceptés"
+                    >
+                      <li>
+                        <Banknote size={22} aria-hidden="true" />
+                        <strong>Cash Plus</strong>
+                      </li>
+                      <li>
+                        <Wallet size={22} aria-hidden="true" />
+                        <strong>Wafacash</strong>
+                      </li>
+                      <li>
+                        <Landmark size={22} aria-hidden="true" />
+                        <strong>Virement bancaire</strong>
+                      </li>
                     </ul>
                     {context.subject &&
                       !chosen.includes(context.subject) &&
@@ -774,10 +835,18 @@ export function PacksPage() {
                           pack ne débloquera pas cet exercice.
                         </Notice>
                       )}
+                    <p className="payment-activation">
+                      L’activation de ton compte et l’accès aux matières de ce
+                      pack se font après réception et validation du paiement par
+                      l’administration.
+                    </p>
                     <Notice>
-                      Le paiement en ligne n’est pas connecté. Ta demande sera
-                      enregistrée ; seul un administrateur pourra activer le
-                      pack après vérification du règlement.
+                      Tu peux aussi demander une séance d’essai avec le
+                      professeur{" "}
+                      {chosen.length > 1
+                        ? "de l’une des matières choisies"
+                        : "de la matière choisie"}
+                      .
                     </Notice>
                     {user && user.role !== "student" ? (
                       <Notice>

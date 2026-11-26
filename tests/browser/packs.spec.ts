@@ -43,12 +43,9 @@ test("découverte publique, choix exact, connexion et demande sans faux paiement
   await expect(proceed).toBeDisabled();
   await page.getByLabel("Physique-chimie", { exact: true }).check();
   await expect(page.getByLabel("Français", { exact: true })).toBeDisabled();
-  await expect(
-    page.getByRole("heading", {
-      name: "Pack 2 · 180 DH au total",
-      exact: true,
-    }),
-  ).toBeVisible();
+  await expect(page.locator(".enrollment-selection-heading")).toContainText(
+    "180 DH",
+  );
   await expect(proceed).toBeEnabled();
   const before = new URL(page.url());
   await proceed.click();
@@ -124,7 +121,10 @@ test("packs impossibles, changement de niveau et accès direct anonyme", async (
   await expect(
     page.getByText(/Ce pack ne débloquera pas cet exercice/),
   ).toBeVisible();
-  await page.getByLabel("Ton niveau scolaire").selectOption(id(31));
+  await page
+    .getByRole("group", { name: "Ton niveau scolaire" })
+    .getByRole("button", { name: "2ème année collège", exact: true })
+    .click();
   await page.getByRole("button", { name: "Changer de pack" }).click();
   await expect(
     page.getByRole("button", { name: "Choisir Pack 2", exact: true }),

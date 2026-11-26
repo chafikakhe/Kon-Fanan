@@ -12,7 +12,9 @@ test("Commencer et Connexion ouvrent le parcours pack, matières, compte", async
     await expect(
       page.getByRole("heading", { name: "Choisis ton pack", exact: true }),
     ).toBeVisible();
-    await expect(page.getByLabel("Ton niveau scolaire")).toHaveCount(0);
+    await expect(
+      page.getByRole("group", { name: "Ton niveau scolaire" }),
+    ).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "Choisir Pack 2", exact: true }),
     ).toBeEnabled();
@@ -32,7 +34,27 @@ test("Commencer et Connexion ouvrent le parcours pack, matières, compte", async
     await page
       .getByRole("button", { name: "Choisir Pack 2", exact: true })
       .click();
-    await page.getByLabel("Ton niveau scolaire").selectOption(level);
+    const levelButton = page
+      .getByRole("group", { name: "Ton niveau scolaire" })
+      .getByRole("button", { name: "3ème année collège", exact: true });
+    await levelButton.click();
+    await expect(levelButton).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.getByRole("combobox", { name: "Ton niveau scolaire" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Ton récapitulatif", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Modes de paiement", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByLabel("Moyens de paiement acceptés").getByRole("listitem"),
+    ).toHaveText(["Cash Plus", "Wafacash", "Virement bancaire"]);
+    await expect(
+      page.getByText(/après réception et validation du paiement/),
+    ).toBeVisible();
+    await expect(page.getByText(/demander une séance d’essai/)).toBeVisible();
     await page.getByLabel("Mathématiques", { exact: true }).check();
     await expect(
       page.getByRole("button", { name: "Continuer vers l’inscription" }),

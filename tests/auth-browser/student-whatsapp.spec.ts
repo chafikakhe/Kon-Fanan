@@ -161,7 +161,10 @@ test("inscription avec WhatsApp : compte en traitement sans email ni accès acti
   await page
     .getByRole("button", { name: "Choisir Pack 2", exact: true })
     .click();
-  await page.getByLabel("Ton niveau scolaire").selectOption(demoID(32));
+  await page
+    .getByRole("group", { name: "Ton niveau scolaire" })
+    .getByRole("button", { name: "3ème année collège", exact: true })
+    .click();
   await page.getByLabel("Mathématiques", { exact: true }).check();
   await page.getByLabel("Physique-chimie", { exact: true }).check();
   await page

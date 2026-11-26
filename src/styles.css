@@ -7643,3 +7643,115 @@ textarea:user-invalid {
     animation: none;
   }
 }
+
+.level-picker {
+  margin-bottom: 24px;
+}
+.level-picker h2 {
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+.level-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.level-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-height: 92px;
+  padding: 18px 20px;
+  border: 1px solid var(--control-border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  transition:
+    background 160ms,
+    border-color 160ms;
+}
+.level-choice > span {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.level-choice small {
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.level-choice strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.level-choice > svg {
+  color: var(--primary-hover);
+}
+.level-choice:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+.level-choice.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
+}
+.level-choice.selected small,
+.level-choice.selected > svg {
+  color: var(--on-primary);
+}
+.pack-selection {
+  scroll-margin-top: 24px;
+}
+.payment-options {
+  align-self: start;
+}
+.payment-methods {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+.payment-methods li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-subtle);
+}
+.payment-methods svg {
+  color: var(--primary-hover);
+}
+.payment-options .payment-activation {
+  font-size: 14px;
+  line-height: 1.8;
+  margin: 20px 0;
+  color: var(--text);
+}
+.payment-options > .button {
+  width: 100%;
+  margin-top: 18px;
+}
+@media (max-width: 760px) {
+  .level-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .level-choice-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .level-choice {
+    min-height: 76px;
+    padding: 14px 16px;
+  }
+}
