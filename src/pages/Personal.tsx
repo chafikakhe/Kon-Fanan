@@ -30,6 +30,7 @@ const notificationLabels: Record<string, string> = {
   course_published: "Un nouveau cours est disponible",
   announcement_published: "Une nouvelle annonce",
   meeting_scheduled: "Une nouvelle séance",
+  meeting_created: "Une nouvelle séance",
   meeting_cancelled: "Une séance a été annulée",
   meeting_updated: "Une séance a été modifiée",
   admission_accepted: "Ton inscription est acceptée",
@@ -347,8 +348,9 @@ export function Legal() {
               Supabase assure l’identité, les données et les fichiers privés.
               Les vidéos YouTube/Vimeo ne sont chargées qu’à l’ouverture du
               lecteur. Les séances Google Meet sont ouvertes dans un nouvel
-              onglet ; la connexion Google du professeur permet de créer les
-              événements de cours.
+              onglet. Le professeur ajoute le lien de sa réunion à une séance ;
+              seuls les étudiants autorisés peuvent le récupérer à l’horaire
+              prévu.
             </p>
             <h2>La démonstration</h2>
             <p>

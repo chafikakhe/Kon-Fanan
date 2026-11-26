@@ -46,7 +46,6 @@ const navigation = {
     ["/competitions", "Challenges et concours", Trophy],
     ["/annonces", "Annonces", Megaphone],
     ["/seances", "Mes séances", CalendarDays],
-    ["/integrations/google", "Connexion Google", Plug],
   ],
   admin: [
     ["", "Vue d’ensemble", LayoutDashboard],

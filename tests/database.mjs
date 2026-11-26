@@ -1927,6 +1927,365 @@ await rejects(
   /ACCESS_DENIED/,
   "Un professeur ne peut autoriser aucune réinitialisation",
 );
+// Manual Meet workflow: no Google connection or external worker required.
+await root();
+await db.exec(
+  await readFile(
+    new URL(
+      "../supabase/migrations/0009_manual_meet_links.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+);
+const manualTeacher = uid(9200),
+  manualStudent = uid(9201),
+  manualOtherTeacher = uid(9202),
+  manualOutsider = uid(9203);
+for (const id of [
+  manualTeacher,
+  manualStudent,
+  manualOtherTeacher,
+  manualOutsider,
+]) {
+  await sql(
+    "insert into auth.users(id,email,email_confirmed_at) values($1,$2,now())",
+    [id, `manual-${id.slice(-4)}@example.test`],
+  );
+  await sql(
+    "update public.account_access set status='active',role=$2 where user_id=$1",
+    [
+      id,
+      [manualTeacher, manualOtherTeacher].includes(id) ? "teacher" : "student",
+    ],
+  );
+}
+await as(admin);
+const manualYear = await call("save_reference", [
+  "academic_years",
+  {
+    label: "Recette Meet manuel",
+    starts_on: "2026-09-01",
+    ends_on: "2027-08-01",
+    is_current: false,
+  },
+]);
+const manualLevel = await call("save_reference", [
+  "levels",
+  { code: "MANUAL", label: "Niveau de recette Meet", cycle: "college" },
+]);
+const manualSubject = await call("save_reference", [
+  "subjects",
+  { code: "MANUAL", label: "Matière de recette Meet" },
+]);
+const manualClass = await call("save_class", [
+  {
+    name: "Classe Meet manuel",
+    academic_year_id: manualYear.id,
+    level_id: manualLevel.id,
+    capacity: 5,
+    subject_ids: [manualSubject.id],
+  },
+]);
+await root();
+const manualCS = await one(
+  "select * from public.class_subjects where class_id=$1",
+  [manualClass.id],
+);
+await as(admin);
+const manualSpace = await call("assign_teacher", [manualTeacher, manualCS.id]);
+await root();
+await sql(
+  "insert into public.class_enrollments(id,student_id,class_id,academic_year_id) values($1,$2,$3,$4)",
+  [uid(9210), manualStudent, manualClass.id, manualYear.id],
+);
+await sql(
+  "insert into public.student_subject_access(enrollment_id,class_subject_id,class_id) values($1,$2,$3)",
+  [uid(9210), manualCS.id, manualClass.id],
+);
+await as(manualTeacher);
+const manualData = {
+  teaching_space_id: manualSpace.id,
+  title: "Séance avec lien fourni",
+  body: "Une explication en direct",
+  starts_at: new Date(Date.now() + 5 * 60000).toISOString(),
+  ends_at: new Date(Date.now() + 65 * 60000).toISOString(),
+  timezone: "Africa/Casablanca",
+};
+let manual = await call("save_manual_meeting", [manualData, false]);
+check(
+  manual.link_source === "manual" &&
+    manual.status === "draft" &&
+    !JSON.stringify(manual).includes("meet.google"),
+  "Brouillon manuel sans lien : aucune URL dans la projection publique",
+);
+check(
+  (await call("get_manual_meeting_link", [manual.id])) === null,
+  "L’enseignant peut compléter le lien plus tard",
+);
+await as(manualStudent);
+check(
+  (await sql("select id from public.meetings where id=$1", [manual.id]))
+    .length === 0,
+  "Brouillon manuel invisible à l’étudiant",
+);
+await rejects(
+  () => call("save_manual_meeting", [manualData, true]),
+  /ACCESS_DENIED/,
+  "L’étudiant ne peut publier aucune séance",
+);
+await as(manualTeacher);
+await rejects(
+  () =>
+    call("save_manual_meeting", [
+      manualData,
+      true,
+      manual.id,
+      manual.row_version,
+    ]),
+  /MEET_URL_REQUIRED/,
+  "Publication sans lien refusée atomiquement",
+);
+check(
+  (
+    await one("select row_version,status from public.meetings where id=$1", [
+      manual.id,
+    ])
+  ).row_version === manual.row_version,
+  "Publication refusée : version du brouillon inchangée",
+);
+for (const meet_url of [
+  "http://meet.google.com/abc-defg-hij",
+  "https://meet.google.com.evil.test/abc-defg-hij",
+  "https://meet.google.com@evil.test/abc-defg-hij",
+  "https://evil.test/?url=https://meet.google.com/abc-defg-hij",
+  "javascript:alert(1)",
+  "https://meet.google.com/lookup/abc",
+  "https://meet.google.com/abc-defg-hij/extra",
+]) {
+  await rejects(
+    () =>
+      call("save_manual_meeting", [
+        { ...manualData, meet_url },
+        true,
+        manual.id,
+        manual.row_version,
+      ]),
+    /INVALID_MEET_URL/,
+    `Lien manuel malformé ou externe refusé : ${meet_url}`,
+  );
+}
+await as(manualOtherTeacher);
+await rejects(
+  () =>
+    call("save_manual_meeting", [
+      { ...manualData, meet_url: "https://meet.google.com/abc-defg-hij" },
+      true,
+      manual.id,
+      manual.row_version,
+    ]),
+  /ACCESS_DENIED/,
+  "Un autre enseignant ne peut modifier la séance",
+);
+await rejects(
+  () => call("get_manual_meeting_link", [manual.id]),
+  /ACCESS_DENIED/,
+  "Un autre enseignant ne peut lire le lien privé",
+);
+await rejects(
+  () => call("cancel_manual_meeting", [manual.id, manual.row_version]),
+  /ACCESS_DENIED/,
+  "Un autre enseignant ne peut annuler la séance",
+);
+await as(manualTeacher);
+const oldManualVersion = manual.row_version;
+manual = await call("save_manual_meeting", [
+  {
+    ...manualData,
+    meet_url: "  https://meet.google.com/abc-defg-hij?authuser=0&hs=122  ",
+  },
+  true,
+  manual.id,
+  manual.row_version,
+]);
+check(
+  manual.status === "scheduled" && manual.sync_status === "synced",
+  "Publication manuelle immédiate sans connexion Google",
+);
+check(
+  (await call("get_manual_meeting_link", [manual.id])) ===
+    "https://meet.google.com/abc-defg-hij",
+  "Les paramètres de compte sont retirés du lien privé",
+);
+await rejects(
+  () =>
+    call("save_manual_meeting", [
+      { ...manualData, meet_url: "https://meet.google.com/xyz-abcd-efg" },
+      true,
+      manual.id,
+      oldManualVersion,
+    ]),
+  /VERSION_CONFLICT/,
+  "Un ancien onglet ne peut écraser le lien actuel",
+);
+await rejects(
+  () =>
+    call("queue_meeting_operation", [
+      manual.id,
+      "cancel",
+      manual.row_version,
+      "manual-legacy-cancel",
+      {},
+    ]),
+  /MEETING_WORKFLOW_REQUIRED/,
+  "Une ancienne commande Google ne peut créer de job pour une séance manuelle",
+);
+await root();
+check(
+  (
+    await sql("select id from private.integration_jobs where meeting_id=$1", [
+      manual.id,
+    ])
+  ).length === 0 &&
+    (
+      await sql(
+        "select id from private.google_connections where teacher_id=$1",
+        [manualTeacher],
+      )
+    ).length === 0,
+  "Aucun job ni compte OAuth requis pour publier",
+);
+check(
+  (
+    await one(
+      "select count(*)::int as n from public.notifications where recipient_id=$1 and target_id=$2 and type='meeting_created'",
+      [manualStudent, manual.id],
+    )
+  ).n === 1,
+  "Le groupe autorisé reçoit la notification de publication",
+);
+await as(manualStudent);
+check(
+  !JSON.stringify(
+    await sql("select * from public.meetings where id=$1", [manual.id]),
+  ).includes("meet.google"),
+  "La liste étudiante ne divulgue pas le lien privé",
+);
+await rejects(
+  () => sql("select * from private.manual_meeting_links"),
+  /permission denied/,
+  "Table des liens inaccessible directement au navigateur",
+);
+await rejects(
+  () => call("get_manual_meeting_link", [manual.id]),
+  /ACCESS_DENIED/,
+  "L’étudiant ne peut contourner la fenêtre par le RPC d’édition",
+);
+check(
+  (await call("get_meeting_join_url", [manual.id])) ===
+    "https://meet.google.com/abc-defg-hij",
+  "L’étudiant autorisé reçoit le lien dans la fenêtre de séance",
+);
+await as(manualOutsider);
+await rejects(
+  () => call("get_meeting_join_url", [manual.id]),
+  /ACCESS_DENIED/,
+  "Un étudiant sans matière ne reçoit jamais le lien manuel",
+);
+await as(null, "anon");
+await rejects(
+  () => call("get_manual_meeting_link", [manual.id]),
+  /permission denied/,
+  "Lecture du lien interdite sans authentification",
+);
+await as(manualTeacher);
+manual = await call("save_manual_meeting", [
+  {
+    ...manualData,
+    title: "Séance modifiée",
+    meet_url: "https://meet.google.com/xyz-abcd-efg",
+    starts_at: new Date(Date.now() + 120 * 60000).toISOString(),
+    ends_at: new Date(Date.now() + 180 * 60000).toISOString(),
+  },
+  true,
+  manual.id,
+  manual.row_version,
+]);
+await as(manualStudent);
+await rejects(
+  () => call("get_meeting_join_url", [manual.id]),
+  /MEETING_NOT_JOINABLE/,
+  "Lien manuel retenu avant la fenêtre d’ouverture",
+);
+await root();
+await sql(
+  "update public.meetings set starts_at=now()-interval '2 hours',ends_at=now()-interval '1 hour' where id=$1",
+  [manual.id],
+);
+await as(manualStudent);
+await rejects(
+  () => call("get_meeting_join_url", [manual.id]),
+  /MEETING_NOT_JOINABLE/,
+  "Lien manuel retenu après la fin",
+);
+await root();
+await sql(
+  "update public.meetings set starts_at=now(),ends_at=now()+interval '1 hour' where id=$1",
+  [manual.id],
+);
+await sql(
+  "update public.student_subject_access set status='revoked' where enrollment_id=$1",
+  [uid(9210)],
+);
+await as(manualStudent);
+await rejects(
+  () => call("get_meeting_join_url", [manual.id]),
+  /ACCESS_DENIED/,
+  "Retrait d’une matière retire immédiatement l’accès au lien manuel",
+);
+await root();
+await sql(
+  "update public.student_subject_access set status='active' where enrollment_id=$1",
+  [uid(9210)],
+);
+await sql(
+  "update public.account_access set status='suspended' where user_id=$1",
+  [manualTeacher],
+);
+await as(manualTeacher);
+await rejects(
+  () =>
+    call("save_manual_meeting", [
+      { ...manualData, meet_url: "https://meet.google.com/abc-defg-hij" },
+      true,
+      manual.id,
+      manual.row_version,
+    ]),
+  /ACCESS_DENIED/,
+  "Un enseignant suspendu ne peut modifier les séances",
+);
+await as(admin);
+manual = await call("cancel_manual_meeting", [manual.id, manual.row_version]);
+check(
+  manual.status === "cancelled",
+  "L’administration peut annuler une séance manuelle",
+);
+await as(manualStudent);
+await rejects(
+  () => call("get_meeting_join_url", [manual.id]),
+  /MEETING_NOT_JOINABLE/,
+  "Une séance annulée ne donne plus de lien",
+);
+await root();
+check(
+  (
+    await sql(
+      "select * from private.manual_meeting_links where meeting_id=$1",
+      [manual.id],
+    )
+  ).length === 0,
+  "L’annulation retire le lien privé sans appel à Google",
+);
 await db.close();
 console.log(
   `\n${checks} vérifications PostgreSQL/RLS réussies. Aucun appel Google ou service Storage réel n’est simulé comme vérifié.`,

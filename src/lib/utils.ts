@@ -38,6 +38,17 @@ export const localToISO = (s: string) => {
     );
   return instant.toISOString();
 };
+export function normalizeMeetURL(input: string): string | null {
+  // Keep only the meeting code, discarding optional account/tracking parameters.
+  const match = input
+    .trim()
+    .match(
+      /^https:\/\/meet\.google\.com\/([a-z]{3}-[a-z]{4}-[a-z]{3})\/?(?:[?#][^\s]*)?$/,
+    );
+  return match && input.trim().length <= 2048
+    ? `https://meet.google.com/${match[1]}`
+    : null;
+}
 export const spaceInfo = (d: Data, id: string | Space) => {
   const space =
     typeof id === "string" ? d.teaching_spaces.find((x) => x.id === id) : id;
@@ -94,6 +105,14 @@ export function errorMessage(err: unknown): string {
   if (/failed to send a request to the edge function/i.test(raw))
     return "Le service est inaccessible. Vérifie la connexion et l’adresse autorisée de l’application, puis réessaie.";
   const pairs: Record<string, string> = {
+    INVALID_MEET_URL:
+      "Collez un lien Google Meet valide, par exemple https://meet.google.com/abc-defg-hij.",
+    MEET_URL_REQUIRED:
+      "Ajoutez le lien Google Meet avant de publier la séance.",
+    INVALID_MEETING_TIME: "L’heure de fin doit être postérieure au début.",
+    MEETING_ENDED: "Choisissez un horaire à venir pour publier la séance.",
+    MEETING_NOT_JOINABLE:
+      "Le lien n’est pas disponible pour le moment. Vérifiez l’horaire de la séance.",
     PACK_UNAVAILABLE: "Ce pack n’est plus disponible. Choisis un autre pack.",
     PAYMENT_REFERENCE_REQUIRED:
       "Indiquez la référence du règlement vérifié avant d’activer ce pack.",

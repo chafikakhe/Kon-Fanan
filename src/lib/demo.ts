@@ -4,8 +4,10 @@ import {
   type User,
   type Role,
   type Params,
+  type Meeting,
 } from "./types";
 import { normalizeWhatsApp } from "./whatsapp";
+import { normalizeMeetURL } from "./utils";
 export const demoID = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const uid = () => crypto.randomUUID();
@@ -334,6 +336,7 @@ export function seedDemo(): Data {
       starts_at: "2026-11-03T16:00:00Z",
       ends_at: "2026-11-03T17:00:00Z",
       timezone: "Africa/Casablanca",
+      link_source: "manual",
       status: "draft",
       sync_status: "disconnected",
       revision: 1,
@@ -513,6 +516,81 @@ export function scopeDemo(source: Data, user: User): Data {
 }
 export function demoMutate(d: Data, u: User, name: string, p: Params): unknown {
   const v = p as Record<string, any>; // Dynamic RPC argument boundary; domain rows remain typed.
+  if (
+    [
+      "get_manual_meeting_link",
+      "get_meeting_join_url",
+      "cancel_manual_meeting",
+      "save_manual_meeting",
+    ].includes(name)
+  ) {
+    const id = v.p_meeting_id || v.p_id;
+    const meeting = d.meetings.find((m) => m.id === id);
+    const announcement = d.announcements.find(
+      (a) => a.id === meeting?.announcement_id,
+    );
+    const spaceId =
+      announcement?.teaching_space_id || v.p_data?.teaching_space_id;
+    const space = d.teaching_spaces.find(
+      (s) => s.id === spaceId && s.is_active,
+    );
+    const owner =
+      u.status === "active" &&
+      (u.role === "admin" ||
+        (u.role === "teacher" && space?.teacher_id === u.id));
+    const key = (meetingId: string) => `kf-demo-meet-link-${meetingId}`;
+    if (name === "get_meeting_join_url") {
+      const visible = scopeDemo(d, u).meetings.some((m) => m.id === id);
+      if (!visible) throw Error("ACCESS_DENIED");
+      if (
+        !meeting ||
+        meeting.status !== "scheduled" ||
+        Date.now() < Date.parse(meeting.starts_at) - 15 * 60000 ||
+        Date.now() > Date.parse(meeting.ends_at)
+      )
+        throw Error("MEETING_NOT_JOINABLE");
+      const url = sessionStorage.getItem(key(meeting.id));
+      if (!url) throw Error("MEETING_NOT_JOINABLE");
+      return url;
+    }
+    if (!owner || !space) throw Error("ACCESS_DENIED");
+    if (name === "get_manual_meeting_link")
+      return meeting ? sessionStorage.getItem(key(meeting.id)) : null;
+    if (meeting && meeting.row_version !== v.p_expected_version)
+      throw Error("VERSION_CONFLICT");
+    if (name === "cancel_manual_meeting") {
+      if (!meeting) throw Error("RESOURCE_NOT_FOUND");
+      meeting.status = "cancelled";
+      meeting.row_version++;
+      sessionStorage.removeItem(key(meeting.id));
+      return meeting;
+    }
+    if (u.role !== "teacher") throw Error("ACCESS_DENIED");
+    if (meeting?.status === "cancelled")
+      throw Error("MEETING_WORKFLOW_REQUIRED");
+    const url = v.p_data.meet_url ? normalizeMeetURL(v.p_data.meet_url) : null;
+    if (v.p_data.meet_url && !url) throw Error("INVALID_MEET_URL");
+    const published = v.p_publish || meeting?.status === "scheduled";
+    if (published && !url) throw Error("MEET_URL_REQUIRED");
+    if (published && Date.parse(v.p_data.ends_at) <= Date.now())
+      throw Error("MEETING_ENDED");
+    const { meet_url: _meetURL, ...publicData } = v.p_data;
+    const row = demoMutate(d, u, "save_meeting", {
+      ...v,
+      p_data: publicData,
+    }) as Meeting;
+    row.link_source = "manual";
+    row.status = published ? "scheduled" : "draft";
+    row.sync_status = url ? "synced" : "pending";
+    if (url) sessionStorage.setItem(key(row.id), url);
+    else sessionStorage.removeItem(key(row.id));
+    const a = d.announcements.find((a) => a.id === row.announcement_id)!;
+    if (published) {
+      a.status = "published";
+      a.published_at ||= now();
+    }
+    return row;
+  }
   if (name === "save_student_contact") {
     const studentId = String(v.p_student_id || u.id);
     if (u.role !== "admin" && studentId !== u.id) throw Error("ACCESS_DENIED");

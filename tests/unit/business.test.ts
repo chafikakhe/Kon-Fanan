@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { formatInTimeZone } from "date-fns-tz";
-import { videoURL, validateFiles, localToISO } from "../../src/lib/utils";
+import {
+  videoURL,
+  validateFiles,
+  localToISO,
+  normalizeMeetURL,
+} from "../../src/lib/utils";
 import { seedDemo, scopeDemo, demoUser, demoID } from "../../src/lib/demo";
 describe("Entrées du navigateur", () => {
   it("normalise uniquement les fournisseurs vidéo autorisés", () => {
@@ -20,6 +25,25 @@ describe("Entrées du navigateur", () => {
       "https://youtu.be/invalid",
     ])
       expect(videoURL(url)).toBeNull();
+  });
+  it("accepte uniquement les liens Meet et retire les paramètres de compte", () => {
+    expect(
+      normalizeMeetURL(
+        "  https://meet.google.com/abc-defg-hij?authuser=0&hs=122  ",
+      ),
+    ).toBe("https://meet.google.com/abc-defg-hij");
+    expect(normalizeMeetURL("https://meet.google.com/abc-defg-hij/")).toBe(
+      "https://meet.google.com/abc-defg-hij",
+    );
+    for (const value of [
+      "http://meet.google.com/abc-defg-hij",
+      "https://meet.google.com.evil.test/abc-defg-hij",
+      "https://meet.google.com@evil.test/abc-defg-hij",
+      "https://meet.google.com/lookup/test",
+      "https://meet.google.com/abc-defg-hij/extra",
+      "javascript:alert(1)",
+    ])
+      expect(normalizeMeetURL(value)).toBeNull();
   });
   it("refuse les formats et les quotas invalides avant envoi", () => {
     const f = (type: string, size: number) =>

@@ -182,6 +182,7 @@ export interface Meeting {
   starts_at: string;
   ends_at: string;
   timezone: string;
+  link_source: "manual" | "google";
   status: string;
   sync_status: string;
   revision: number;

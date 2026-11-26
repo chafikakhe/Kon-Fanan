@@ -304,6 +304,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   async function invoke<T = any>(name: string, body: Params = {}): Promise<T> {
     if (demo) {
       if (name === "google-status") return { state: "disconnected" } as T;
+      if (name === "meetings-join")
+        return {
+          url: await mutate<string>("get_meeting_join_url", {
+            p_meeting_id: body.meetingId,
+          }),
+        } as T;
       throw Error(
         "Cette action nécessite la configuration de Supabase et de l’intégration. Aucun service externe n’est appelé en démonstration.",
       );

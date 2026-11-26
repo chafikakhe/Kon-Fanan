@@ -412,13 +412,7 @@ export function StudentDashboard() {
   );
 }
 export function TeacherDashboard() {
-  const { data, user, invoke } = useApp();
-  const [google, setGoogle] = useState<{ state: string } | null>(null);
-  useEffect(() => {
-    void invoke<{ state: string }>("google-status")
-      .then(setGoogle)
-      .catch(() => setGoogle({ state: "error" }));
-  }, []);
+  const { data, user } = useApp();
   const spaces = data.teaching_spaces.filter(
       (s) => s.teacher_id === user!.id && s.is_active,
     ),
@@ -509,18 +503,11 @@ export function TeacherDashboard() {
             en direct.
           </h2>
           <p>
-            Connectez votre compte Google pour créer vos séances et partager
-            automatiquement un lien Meet.
+            Créez votre lien sur Google Meet, puis ajoutez-le à une séance pour
+            le partager avec votre groupe.
           </p>
-          {google ? (
-            <Badge status={google.state} />
-          ) : (
-            <span className="muted small-text">
-              Vérification de la connexion…
-            </span>
-          )}
-          <ButtonLink to="/prof/integrations/google" variant="secondary">
-            Gérer ma connexion <ArrowUpRight size={16} />
+          <ButtonLink to="/prof/seances/nouvelle" variant="secondary">
+            Planifier une séance <ArrowUpRight size={16} />
           </ButtonLink>
         </Panel>
       </div>

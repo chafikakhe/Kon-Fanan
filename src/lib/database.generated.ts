@@ -875,6 +875,7 @@ export type Database = {
           ends_at: string;
           id: string;
           last_error_code: string | null;
+          link_source: string;
           revision: number;
           row_version: number;
           starts_at: string;
@@ -890,6 +891,7 @@ export type Database = {
           ends_at: string;
           id?: string;
           last_error_code?: string | null;
+          link_source?: string;
           revision?: number;
           row_version?: number;
           starts_at: string;
@@ -905,6 +907,7 @@ export type Database = {
           ends_at?: string;
           id?: string;
           last_error_code?: string | null;
+          link_source?: string;
           revision?: number;
           row_version?: number;
           starts_at?: string;
@@ -1528,6 +1531,10 @@ export type Database = {
         Args: { p_submission_id: string };
         Returns: boolean;
       };
+      cancel_manual_meeting: {
+        Args: { p_expected_version: number; p_meeting_id: string };
+        Returns: Json;
+      };
       competition_leaderboard: {
         Args: { p_competition_id: string };
         Returns: {
@@ -1588,6 +1595,10 @@ export type Database = {
           isOneToOne: false;
           isSetofReturn: true;
         };
+      };
+      get_manual_meeting_link: {
+        Args: { p_meeting_id: string };
+        Returns: string;
       };
       get_meeting_join_url: { Args: { p_meeting_id: string }; Returns: string };
       get_platform_settings: { Args: never; Returns: Json };
@@ -1710,6 +1721,15 @@ export type Database = {
       };
       save_exercise: {
         Args: { p_data: Json; p_expected_version?: number; p_id?: string };
+        Returns: Json;
+      };
+      save_manual_meeting: {
+        Args: {
+          p_data: Json;
+          p_expected_version?: number;
+          p_id?: string;
+          p_publish?: boolean;
+        };
         Returns: Json;
       };
       save_meeting: {

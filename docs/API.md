@@ -82,3 +82,7 @@ Appel frontend : `supabase.functions.invoke(nom, { body })`. Réponse `{ data, r
 `google-oauth-redirect` et `google-oauth-callback` utilisent les preuves du flux OAuth. `integration-worker` reçoit le secret dédié dans `x-worker-secret` ; il ne doit jamais être appelé avec ce secret depuis React.
 
 Les clés d’idempotence de séance ont au moins huit caractères. Un payload différent sous une même clé produit un conflit. Les reprises utilisent l’identifiant d’événement et la révision existants.
+
+## Séances avec lien fourni
+
+Le parcours professeur utilise `save_manual_meeting`, `get_manual_meeting_link` et `cancel_manual_meeting`, sans Google OAuth. L’accès étudiant conserve `meetings-join`. Les paramètres et contrôles sont décrits dans [MANUAL_MEET.md](MANUAL_MEET.md).

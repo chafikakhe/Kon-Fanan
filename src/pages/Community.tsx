@@ -40,6 +40,7 @@ import {
   date,
   initials,
   localToISO,
+  normalizeMeetURL,
   rolePath,
   spaceInfo,
 } from "../lib/utils";
@@ -898,14 +899,40 @@ export function SessionEditor() {
     navigate = useNavigate();
   const m = data.meetings.find((m) => m.id === id),
     a = data.announcements.find((a) => a.id === m?.announcement_id);
+  const manual = !m || m.link_source !== "google";
   const [publish, setPublish] = useState(false);
+  const [meetURL, setMeetURL] = useState("");
+  const [loadingLink, setLoadingLink] = useState(!!m && manual);
+  const [linkError, setLinkError] = useState("");
+  const [linkAttempt, setLinkAttempt] = useState(0);
+  useEffect(() => {
+    if (!m || !manual) return;
+    let live = true;
+    setLoadingLink(true);
+    setLinkError("");
+    void mutate<string | null>("get_manual_meeting_link", {
+      p_meeting_id: m.id,
+    })
+      .then((url) => {
+        if (live) setMeetURL(url || "");
+      })
+      .catch((error) => {
+        if (live) setLinkError(error.message);
+      })
+      .finally(() => {
+        if (live) setLoadingLink(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [m?.id, manual, linkAttempt]);
   if (id && !m) return <Unavailable />;
   return (
     <>
       <PageHeader
         eyebrow="UN RENDEZ-VOUS POUR AVANCER"
         title={m ? "Modifier la séance" : "Planifier une séance"}
-        description="Le lien Google Meet est créé côté serveur et ajouté à l’annonce une fois prêt."
+        description="Créez votre lien sur Google Meet, puis collez-le ici pour votre groupe."
         back="/prof/seances"
       />
       <div className="split-layout">
@@ -916,7 +943,7 @@ export function SessionEditor() {
               const changes = {
                 title: fd.get("title"),
                 body: fd.get("body"),
-                teaching_space_id: fd.get("space"),
+                teaching_space_id: fd.get("space") || a?.teaching_space_id,
                 course_id: fd.get("course") || null,
                 starts_at: localToISO(String(fd.get("starts"))),
                 ends_at: localToISO(String(fd.get("ends"))),
@@ -924,6 +951,34 @@ export function SessionEditor() {
               };
               if (Date.parse(changes.ends_at) <= Date.parse(changes.starts_at))
                 throw Error("L’heure de fin doit être postérieure au début.");
+              if (manual) {
+                if (loadingLink || linkError)
+                  throw Error(
+                    "Rechargez le lien de la séance avant de l’enregistrer.",
+                  );
+                const url = meetURL.trim() ? normalizeMeetURL(meetURL) : null;
+                if (meetURL.trim() && !url)
+                  throw Error(
+                    "Collez un lien Google Meet valide, au format https://meet.google.com/abc-defg-hij.",
+                  );
+                if ((publish || m?.status === "scheduled") && !url)
+                  throw Error(
+                    "Ajoutez le lien Google Meet avant de publier la séance.",
+                  );
+                const result = await mutate<Meeting>("save_manual_meeting", {
+                  p_data: { ...changes, meet_url: url },
+                  p_publish: publish || m?.status === "scheduled",
+                  p_id: m?.id || null,
+                  p_expected_version: m?.row_version || null,
+                });
+                notify(
+                  result.status === "scheduled"
+                    ? "La séance et son lien Meet sont disponibles pour le groupe."
+                    : "Le brouillon de séance a été enregistré.",
+                );
+                navigate(`/prof/seances/${result.id}`);
+                return;
+              }
               if (m && m.status !== "draft") {
                 await invoke("meetings-update", {
                   meetingId: m.id,
@@ -1029,18 +1084,55 @@ export function SessionEditor() {
             <Field label="Description">
               <textarea name="body" rows={4} defaultValue={a?.body} />
             </Field>
+            {manual && (
+              <Field
+                label="Lien Google Meet"
+                hint="Collez le lien de votre réunion. Il est obligatoire pour publier ; vous pouvez l’ajouter plus tard au brouillon."
+              >
+                <input
+                  name="meet_url"
+                  type="url"
+                  placeholder="https://meet.google.com/abc-defg-hij"
+                  value={meetURL}
+                  onChange={(event) => setMeetURL(event.target.value)}
+                  maxLength={2048}
+                  disabled={loadingLink || !!linkError}
+                  autoComplete="off"
+                />
+              </Field>
+            )}
+            {manual && loadingLink && <p role="status">Chargement du lien…</p>}
+            {manual && linkError && (
+              <Notice tone="error">
+                {linkError}{" "}
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setLinkAttempt((value) => value + 1)}
+                >
+                  Réessayer
+                </Button>
+              </Notice>
+            )}
             <div className="actions">
               <Button
                 type="submit"
                 onClick={() => setPublish(false)}
+                disabled={manual && (loadingLink || !!linkError)}
                 variant="secondary"
               >
                 {m?.status === "scheduled"
-                  ? "Synchroniser les modifications"
+                  ? manual
+                    ? "Enregistrer les modifications"
+                    : "Synchroniser les modifications"
                   : "Enregistrer le brouillon"}
               </Button>
               {(!m || m.status === "draft") && (
-                <Button type="submit" onClick={() => setPublish(true)}>
+                <Button
+                  type="submit"
+                  disabled={manual && (loadingLink || !!linkError)}
+                  onClick={() => setPublish(true)}
+                >
                   Publier la séance <Video size={17} />
                 </Button>
               )}
@@ -1055,24 +1147,29 @@ export function SessionEditor() {
             La rencontre, sur Meet.
           </h2>
           <p>
-            Connectez votre compte Google, planifiez la séance, puis laissez
-            motafawiq.ma prépare le lien pour votre groupe.
+            Sur Google Meet, cliquez sur « Nouvelle réunion », puis « Créer une
+            réunion pour une date ultérieure ». Copiez le lien, collez-le dans
+            ce formulaire et publiez votre séance.
           </p>
           <Notice>
-            L’annonce n’est publiée aux étudiants que lorsque le lien est prêt.
-            Aucune adresse email d’étudiant n’est transmise aux invités
-            Calendar.
+            La séance est publiée immédiatement avec votre lien. Les étudiants
+            autorisés pourront rejoindre à l’heure prévue, depuis leur espace.
           </Notice>
-          <ButtonLink variant="secondary" to="/prof/integrations/google">
-            Gérer mon compte Google <ArrowUpRight size={16} />
-          </ButtonLink>
+          <a
+            className="button secondary"
+            href="https://meet.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Créer un lien sur Google Meet <ArrowUpRight size={16} />
+          </a>
         </Panel>
       </div>
     </>
   );
 }
 export function SessionDetail() {
-  const { data, user, invoke, notify, refresh, demo } = useApp(),
+  const { data, user, mutate, invoke, notify, refresh, demo } = useApp(),
     { id } = useParams();
   const m = data.meetings.find((m) => m.id === id),
     a = data.announcements.find((a) => a.id === m?.announcement_id);
@@ -1082,6 +1179,7 @@ export function SessionDetail() {
     [link, setLink] = useState("");
   if (!m || !a) return <Unavailable />;
   const teacher = user!.role === "teacher",
+    manual = m.link_source !== "google",
     info = spaceInfo(data, a.teaching_space_id);
   const joinable =
     m.status === "scheduled" &&
@@ -1090,6 +1188,8 @@ export function SessionDetail() {
     Date.now() <= Date.parse(m.ends_at);
   async function join() {
     setBusy(true);
+    setError("");
+    setLink("");
     try {
       const result = await invoke<{ url: string }>("meetings-join", {
         meetingId: m!.id,
@@ -1171,7 +1271,7 @@ export function SessionDetail() {
           <h2>On se retrouve en direct.</h2>
           <p>
             {m.status === "draft"
-              ? "Enregistrez puis publiez la séance pour préparer un lien Google Meet."
+              ? "Ajoutez votre lien Google Meet, puis publiez la séance pour votre groupe."
               : m.status === "cancelled"
                 ? "Cette séance a été annulée."
                 : m.status === "publishing"
@@ -1179,10 +1279,16 @@ export function SessionDetail() {
                   : m.status === "error"
                     ? "La préparation du lien nécessite une action de votre professeur."
                     : !joinable
-                      ? "L’accès ouvre 15 minutes avant le début de la séance."
+                      ? Date.now() > Date.parse(m.ends_at)
+                        ? "Cette séance est terminée."
+                        : "L’accès ouvre 15 minutes avant le début de la séance."
                       : "La séance s’ouvre dans un nouvel onglet."}
           </p>
-          {teacher && m.status === "draft" ? (
+          {teacher && manual && m.status === "draft" ? (
+            <ButtonLink to={`/prof/seances/${m.id}/modifier`}>
+              Compléter et publier la séance <ArrowRight size={17} />
+            </ButtonLink>
+          ) : teacher && m.status === "draft" ? (
             <Button
               disabled={busy}
               onClick={async () => {
@@ -1209,7 +1315,7 @@ export function SessionDetail() {
               Ouvrir Google Meet <ExternalLink size={17} />
             </Button>
           )}
-          {link && (
+          {link && joinable && (
             <a
               className="text-link"
               href={link}
@@ -1219,7 +1325,7 @@ export function SessionDetail() {
               Ouvrir le lien si l’onglet est bloqué <ArrowUpRight size={16} />
             </a>
           )}
-          {m.last_error_code && teacher && (
+          {m.last_error_code && teacher && !manual && (
             <Notice>
               Une erreur de synchronisation est signalée. Vérifiez votre
               connexion Google puis consultez l’état des intégrations.
@@ -1227,7 +1333,7 @@ export function SessionDetail() {
           )}
           {demo && (
             <small className="muted">
-              Démonstration : aucun lien Meet n’est créé.
+              Démonstration : aucune réunion réelle n’est créée.
             </small>
           )}
         </Panel>
@@ -1236,8 +1342,11 @@ export function SessionDetail() {
       {cancel && (
         <Modal title="Annuler la séance ?" onClose={() => setCancel(false)}>
           <p>
-            Le bouton Rejoindre sera retiré immédiatement. L’annulation Google
-            sera synchronisée et le groupe sera informé.
+            Le bouton Rejoindre sera retiré immédiatement et le groupe sera
+            informé.
+            {manual
+              ? " Si nécessaire, annulez aussi la réunion directement sur Google Meet."
+              : " L’annulation Google sera synchronisée."}
           </p>
           <Button
             variant="danger"
@@ -1245,11 +1354,17 @@ export function SessionDetail() {
             onClick={async () => {
               setBusy(true);
               try {
-                await invoke("meetings-cancel", {
-                  meetingId: m.id,
-                  expectedVersion: m.row_version,
-                  idempotencyKey: crypto.randomUUID(),
-                });
+                if (manual)
+                  await mutate("cancel_manual_meeting", {
+                    p_meeting_id: m.id,
+                    p_expected_version: m.row_version,
+                  });
+                else
+                  await invoke("meetings-cancel", {
+                    meetingId: m.id,
+                    expectedVersion: m.row_version,
+                    idempotencyKey: crypto.randomUUID(),
+                  });
                 await refresh();
                 setCancel(false);
                 notify("L’annulation a été enregistrée.");
@@ -1269,137 +1384,42 @@ export function SessionDetail() {
   );
 }
 export function GoogleIntegration() {
-  const { invoke, demo, notify } = useApp();
-  const [state, setState] = useState<{ state: string; email?: string }>({
-      state: "disconnected",
-    }),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [confirm, setConfirm] = useState(false);
-  useEffect(() => {
-    const outcome = new URLSearchParams(window.location.search).get("google");
-    if (outcome && outcome !== "connected")
-      setError(
-        (
-          {
-            OAUTH_DENIED:
-              "L’autorisation Google a été refusée. Vous pouvez recommencer.",
-            OAUTH_SCOPE_MISSING:
-              "L’accès au calendrier n’a pas été accordé. Reconnectez votre compte.",
-            GOOGLE_RECONNECT_REQUIRED:
-              "Google n’a pas fourni d’accès durable. Reconnectez votre compte.",
-            ACCOUNT_CHANGE_BLOCKED:
-              "Des séances dépendent de votre compte précédent. Reconnectez ce même compte ou annulez ces séances.",
-          } as Record<string, string>
-        )[outcome] ||
-          "La connexion Google n’a pas abouti. Recommencez depuis cette page.",
-      );
-    void invoke<typeof state>("google-status")
-      .then(setState)
-      .catch((e) => setError(e.message));
-  }, []);
   return (
     <>
       <PageHeader
         eyebrow="DES COURS, DES RENCONTRES"
-        title="Google Calendar & Meet"
-        description="Planifiez vos séances directement depuis motafawiq.ma."
+        title="Vos séances sur Google Meet"
+        description="Créez votre lien, ajoutez-le à une séance et retrouvez votre groupe."
       />
       <Panel className="google-integration">
-        <div className="google-icon large">G</div>
-        <Badge status={state.state} />
-        <h2>
-          Vos élèves à un clic.
-          <br />
-          Votre calendrier, à jour.
-        </h2>
-        <p>
-          Autorisez motafawiq.ma à gérer les événements créés pour vos cours dans
-          votre calendrier Google. Les identifiants de connexion restent
-          protégés côté serveur.
-        </p>
+        <Video size={40} />
+        <h2>Un lien suffit pour commencer.</h2>
         <div className="google-steps">
           {[
-            ["01", "Connectez votre compte"],
-            ["02", "Planifiez une séance"],
-            ["03", "Retrouvez votre groupe sur Meet"],
-          ].map(([n, t]) => (
+            ["01", "Créez une réunion sur Google Meet"],
+            ["02", "Copiez le lien dans votre séance"],
+            ["03", "Publiez pour votre groupe"],
+          ].map(([n, title]) => (
             <div key={n}>
               <span>{n}</span>
-              <strong>{t}</strong>
+              <strong>{title}</strong>
             </div>
           ))}
         </div>
-        {state.email && (
-          <p>
-            Compte connecté : <strong>{state.email}</strong>
-          </p>
-        )}
-        {state.state === "connected" ? (
-          <div className="actions">
-            <ButtonLink to="/prof/seances/nouvelle">
-              Planifier une séance <Plus size={17} />
-            </ButtonLink>
-            <Button variant="ghost" onClick={() => setConfirm(true)}>
-              Déconnecter
-            </Button>
-          </div>
-        ) : (
-          <Button
-            disabled={busy || demo}
-            onClick={async () => {
-              setBusy(true);
-              setError("");
-              try {
-                const r = await invoke<{ url: string }>("google-oauth-start");
-                window.location.assign(r.url);
-              } catch (e) {
-                setError((e as Error).message);
-                setBusy(false);
-              }
-            }}
+        <div className="actions">
+          <a
+            className="button secondary"
+            href="https://meet.google.com/"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            {state.state === "reconnect_required"
-              ? "Reconnecter Google"
-              : "Connecter mon compte Google"}
-            <ArrowUpRight size={17} />
-          </Button>
-        )}
-        {demo && (
-          <Notice>
-            Cette intégration est désactivée dans la démonstration. Aucun compte
-            Google n’est connecté.
-          </Notice>
-        )}
-        {error && <Notice tone="error">{error}</Notice>}
+            Ouvrir Google Meet <ExternalLink size={17} />
+          </a>
+          <ButtonLink to="/prof/seances/nouvelle">
+            Planifier une séance <Plus size={17} />
+          </ButtonLink>
+        </div>
       </Panel>
-      {confirm && (
-        <Modal title="Déconnecter Google ?" onClose={() => setConfirm(false)}>
-          <p>
-            Vos événements existants sont conservés. Les futures
-            synchronisations seront bloquées jusqu’à la reconnexion.
-          </p>
-          <Button
-            disabled={busy}
-            variant="danger"
-            onClick={async () => {
-              setBusy(true);
-              try {
-                await invoke("google-disconnect");
-                setState({ state: "disconnected" });
-                setConfirm(false);
-                notify("Le compte Google a été déconnecté.");
-              } catch (e) {
-                setError((e as Error).message);
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            Déconnecter mon compte
-          </Button>
-        </Modal>
-      )}
     </>
   );
 }

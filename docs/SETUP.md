@@ -56,7 +56,9 @@ npx supabase functions deploy
 
 Le runtime fournit `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Ces valeurs ne doivent pas figurer dans un fichier `VITE_`. Les handlers utilisateur vérifient la session avec `auth.getUser` et recontrôlent rôle/statut ; les callbacks OAuth et le worker ont une authentification propre. `config.toml` conserve `verify_jwt=true` pour les fonctions utilisateur.
 
-## 4. Google Cloud
+## 4. Séances Meet et Google Cloud facultatif
+
+Le parcours principal utilise un lien Meet créé et collé par le professeur ; il ne demande aucun projet Google Cloud. Appliquer `0009_manual_meet_links.sql` selon [MANUAL_MEET.md](MANUAL_MEET.md). Les étapes ci-dessous concernent uniquement l’ancienne intégration automatique Calendar/Meet.
 
 Activer Calendar API, préparer l’écran de consentement, déclarer les comptes de test et créer un client OAuth **application web**. Déclarer exactement :
 
