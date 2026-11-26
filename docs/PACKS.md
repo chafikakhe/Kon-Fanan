@@ -2,6 +2,10 @@
 
 ## Parcours livré
 
+« Commencer » ouvre directement `/packs`. Le visiteur voit les offres actives avant de renseigner son niveau. Après choix d’un pack, l’étape « Matières » demande le niveau puis exactement le nombre de matières prévu par l’offre. Le récapitulatif conserve le prix total, le niveau et les matières.
+
+Le CTA « Connexion » de la landing ouvre `/inscription`, avec un grand bouton « Sign in » (création de compte) et un lien distinct « Se connecter » pour les comptes existants. Ce bouton lance le même parcours packs avec une translation ; la préférence de réduction des animations supprime cet effet. Le formulaire d’inscription n’apparaît qu’après sélection du pack et des matières, sur `/inscription?etape=compte`. Les choix sont conservés au rechargement et lors du retour à une étape précédente.
+
 La page d’accueil affiche directement les niveaux actifs du catalogue sous « Choisis ton niveau ». Chaque ligne ouvre `/decouvrir?level=…` pour choisir une matière, puis consulter les cours publiés de ses professeurs actifs. `/decouvrir` conserve aussi la liste des niveaux. `/decouvrir/cours/:id` expose le contenu et la vidéo du cours ainsi que les titres des exercices. Les PDF attachés au cours sont maintenant lisibles sous sa vidéo via un accès public borné au cours publié : voir [COURSE_READER.md](COURSE_READER.md). Les consignes, pièces jointes d’exercice/copies et liens live ne font pas partie du catalogue public. Les listes de cours sont paginées par 24.
 
 Le clic sur un exercice vérifie les droits actuels côté serveur. Un accès historique valide ou un pack actif couvrant sa matière et son niveau permet de l’ouvrir. Sinon, `/packs` conserve le niveau, la matière, le cours et l’exercice dans l’URL. La matière est présélectionnée et peut être retirée ; un avertissement indique alors que l’exercice initial restera protégé.
@@ -19,8 +23,8 @@ Les packs incluent les cours, exercices et lives des matières sélectionnées �
 Aucun prestataire de paiement n’existait dans le projet. Le mode livré est **demande avec vérification administrative du règlement**. L’interface l’annonce avant envoi et après enregistrement. Elle n’affiche jamais un paiement réussi à partir d’un clic ou d’une URL.
 
 1. Choix du pack, nombre exact de matières et récapitulatif du prix total.
-2. Connexion ou inscription Supabase, avec confirmation d’email. L’inscription depuis les packs ne nécessite pas de classe choisie à l’avance. Le retour validé vers `/packs` est conservé localement et inclus dans l’URL de confirmation.
-3. Envoi explicite de la demande authentifiée : le serveur recalcule le prix depuis l’offre et valide les matières et leur niveau. Statut `pending_review`, aucun droit nouveau.
+2. Inscription Supabase avec nom, email, mot de passe et WhatsApp, sans confirmation par email. L’inscription ne nécessite pas de classe choisie à l’avance. Un lien « Se connecter » permet aux comptes existants de reprendre les mêmes choix.
+3. Lors de la création du compte, la demande de pack est enregistrée avec la clé d’idempotence de la sélection. Pour un compte existant, « Envoyer ma demande d’achat » la confirme. Le serveur recalcule le prix depuis l’offre et valide les matières et leur niveau. Statut `pending_review`, aucun droit nouveau. Si l’enregistrement du pack échoue après création du compte, la sélection est conservée et l’étudiant retourne au récapitulatif pour réessayer sans recréer son compte.
 4. L’étudiant contacte l’administration avec la référence affichée pour connaître les modalités de règlement hors application.
 5. `/admin/packs` exige une référence vérifiable et une confirmation de contrôle du montant avant activation. Seul un administrateur actif peut appeler la RPC de validation. Activation, audit et notification sont atomiques ; un compte étudiant en attente est activé à cette étape. Un compte suspendu, archivé ou rejeté n’est pas réactivé par ce mécanisme.
 6. L’étudiant actualise le statut pour reprendre son exercice ou ouvrir ses matières. Les packs et demandes apparaissent dans l’espace étudiant et sur l’écran d’admission en attente.

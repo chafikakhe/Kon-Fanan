@@ -16,8 +16,16 @@ import {
 } from "lucide-react";
 import { useApp } from "../app/AppProvider";
 import { appURL, supabase, demoEnabled } from "../lib/supabase";
-import { demoID } from "../lib/demo";
-import { checkoutReturn, rememberCheckout } from "../lib/packs";
+import {
+  checkoutReturn,
+  checkoutJourney,
+  rememberCheckout,
+} from "../lib/packs";
+import {
+  EnrollmentStart,
+  EnrollmentSteps,
+  EnrollmentRecap,
+} from "../components/EnrollmentStart";
 import { StudentPacks } from "./Discovery";
 import { rolePath, roleLabel } from "../lib/utils";
 import type { Role } from "../lib/types";
@@ -36,15 +44,13 @@ import {
 export default function Auth() {
   const location = useLocation(),
     navigate = useNavigate();
-  const { user, loginDemo } = useApp();
+  const { user, loginDemo, refresh } = useApp();
   const [show, setShow] = useState(false),
-    [complete, setComplete] = useState(false),
-    [classes, setClasses] = useState<
-      { id: string; name: string; year_label?: string }[]
-    >([]),
-    [classError, setClassError] = useState("");
+    [creating, setCreating] = useState(false),
+    [complete, setComplete] = useState(false);
   const path = location.pathname;
   const returnTo = checkoutReturn();
+  const selectedCheckout = checkoutJourney();
   const signup = path === "/inscription",
     forgot = path === "/mot-de-passe-oublie",
     reset = path === "/nouveau-mot-de-passe";
@@ -63,21 +69,8 @@ export default function Auth() {
   }, [signup, forgot, reset]);
   useEffect(() => {
     setComplete(false);
-    if (signup) {
-      if (!supabase) {
-        setClasses([
-          { id: demoID(50), name: "3ème collège A", year_label: "2026–2027" },
-        ]);
-        return;
-      }
-      void supabase.rpc("open_classes").then((r) => {
-        if (r.error)
-          setClassError("Les classes ne sont pas disponibles. Réessayez.");
-        else setClasses(r.data || []);
-      });
-    }
   }, [path]);
-  if (user && !reset)
+  if (user && !reset && !creating)
     return (
       <Navigate
         to={
@@ -96,6 +89,12 @@ export default function Auth() {
         replace
       />
     );
+  if (
+    signup &&
+    (!selectedCheckout ||
+      new URLSearchParams(location.search).get("etape") !== "compte")
+  )
+    return <EnrollmentStart />;
   async function submit(form: HTMLFormElement) {
     if (!supabase)
       throw Error(
@@ -111,27 +110,46 @@ export default function Auth() {
         throw Error("Utilise au moins 12 caractères pour ton mot de passe.");
     }
     if (signup) {
-      const chosen = String(fd.get("class"));
-      const r = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            display_name: String(fd.get("name")),
-            whatsapp_number: normalizeWhatsApp(
-              String(fd.get("whatsapp") || ""),
-            ),
-            ...(!returnTo ? { requested_class_id: chosen } : {}),
+      setCreating(true);
+      try {
+        const r = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              display_name: String(fd.get("name")),
+              whatsapp_number: normalizeWhatsApp(
+                String(fd.get("whatsapp") || ""),
+              ),
+            },
+            emailRedirectTo: `${appURL}/auth/callback${returnTo ? `?retour=${encodeURIComponent(returnTo)}` : ""}`,
           },
-          emailRedirectTo: `${appURL}/auth/callback${returnTo ? `?retour=${encodeURIComponent(returnTo)}` : ""}`,
-        },
-      });
-      if (r.error) throw Error(r.error.message);
-      if (r.data.session) {
-        navigate("/admission", { replace: true });
-        return;
+        });
+        if (r.error) throw Error(r.error.message);
+        if (r.data.session) {
+          if (selectedCheckout) {
+            const result = await supabase.rpc("request_pack_order", {
+              p_pack_id: selectedCheckout.pack,
+              p_level_id: selectedCheckout.level,
+              p_subject_ids: selectedCheckout.subjects,
+              p_idempotency_key: selectedCheckout.key || crypto.randomUUID(),
+              p_course_id: selectedCheckout.course || null,
+              p_exercise_id: selectedCheckout.exercise || null,
+            });
+            if (result.error) {
+              navigate(returnTo!);
+              return;
+            }
+            await refresh();
+            localStorage.removeItem("kf-checkout-return");
+          }
+          navigate("/admission", { replace: true });
+          return;
+        }
+        setComplete(true);
+      } finally {
+        setCreating(false);
       }
-      setComplete(true);
     } else if (forgot) {
       await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${appURL}/nouveau-mot-de-passe`,
@@ -202,6 +220,12 @@ export default function Auth() {
           </span>
         </section>
         <Panel className="auth-form-panel">
+          {signup && selectedCheckout && (
+            <>
+              <EnrollmentSteps step={3} subjectsURL={returnTo!} />
+              <EnrollmentRecap journey={selectedCheckout} />
+            </>
+          )}
           <span className="auth-icon">
             {forgot ? <Mail /> : <GraduationCap />}
           </span>
@@ -323,23 +347,6 @@ export default function Auth() {
               )}
               {signup && (
                 <>
-                  {!returnTo && (
-                    <Field label="Classe souhaitée">
-                      <select name="class" required defaultValue="">
-                        <option value="" disabled>
-                          Choisir ta classe
-                        </option>
-                        {classes.map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name} — {c.year_label || "2026–2027"}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                  )}
-                  {!returnTo && classError && (
-                    <Notice tone="error">{classError}</Notice>
-                  )}
                   <label className="checkbox-row">
                     <input type="checkbox" required />
                     <span>
@@ -367,7 +374,7 @@ export default function Auth() {
               <Button
                 type="submit"
                 className="button primary full-width"
-                disabled={signup && !returnTo && !classes.length}
+                disabled={creating}
               >
                 {signup
                   ? "Créer mon compte"
@@ -383,7 +390,15 @@ export default function Auth() {
           {!complete && (
             <p className="auth-switch">
               {signup ? "Déjà un compte ?" : "Pas encore de compte ?"}{" "}
-              <Link to={signup ? "/connexion" : "/inscription"}>
+              <Link
+                to={
+                  signup
+                    ? "/connexion"
+                    : selectedCheckout
+                      ? "/inscription?etape=compte"
+                      : "/inscription"
+                }
+              >
                 {signup ? "Se connecter" : "S’inscrire"}
               </Link>
             </p>
@@ -527,6 +542,11 @@ export function AccountState({ suspended = false }: { suspended?: boolean }) {
     (a) => a.student_id === user.id,
   );
   const contact = data.student_contacts.find((c) => c.student_id === user.id);
+  const requestedPack = data.pack_orders.some(
+    (order) =>
+      order.student_id === user.id &&
+      ["pending_review", "active"].includes(order.status),
+  );
   return (
     <div className="account-state auth-page">
       <div className="auth-brand">
@@ -601,8 +621,16 @@ export function AccountState({ suspended = false }: { suspended?: boolean }) {
               Compte créé
             </li>
             <li>
-              {admission ? <Check size={16} /> : <span>2</span>}Demande{" "}
-              {admission ? "envoyée" : "à compléter"}
+              {admission || requestedPack ? (
+                <Check size={16} />
+              ) : (
+                <span>2</span>
+              )}
+              {requestedPack
+                ? "Pack et matières sélectionnés"
+                : admission
+                  ? "Demande envoyée"
+                  : "Demande à compléter"}
             </li>
             <li>
               <Clock size={16} />
@@ -610,7 +638,7 @@ export function AccountState({ suspended = false }: { suspended?: boolean }) {
             </li>
           </ol>
         )}
-        {!admission && !suspended && (
+        {!admission && !requestedPack && !suspended && (
           <AsyncForm
             onSubmit={async (f) => {
               await mutate("request_admission", {

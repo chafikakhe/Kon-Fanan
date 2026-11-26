@@ -12,6 +12,7 @@ import {
   Tabs,
 } from "../components/ui";
 import { date } from "../lib/utils";
+import { Link } from "react-router-dom";
 export default function PacksAdmin() {
   const { data, mutate, demo, hasMore, loadMore } = useApp(),
     [tab, setTab] = useState("À vérifier"),
@@ -96,6 +97,12 @@ export default function PacksAdmin() {
             <p className="small-text">
               Demande {o.id} · {date(o.created_at, true)}
             </p>
+            <Link
+              className="button secondary"
+              to={`/admin/etudiants/${o.student_id}`}
+            >
+              Voir le dossier et le contact WhatsApp
+            </Link>
             {o.status === "pending_review" ? (
               <AsyncForm
                 onSubmit={async (f) => {

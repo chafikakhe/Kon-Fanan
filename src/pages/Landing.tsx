@@ -27,7 +27,7 @@ export default function Landing() {
           <a href="#apropos">À propos</a>
           <a href="#matieres">Les cours</a>
           <Link to="/packs">Les packs</Link>
-          <Link to="/connexion">Connexion</Link>
+          <Link to="/inscription">Connexion</Link>
         </nav>
       </header>
       <main>
@@ -50,6 +50,9 @@ export default function Landing() {
                 <br />
                 Un avenir qui se construit, à ton rythme.
               </p>
+              <ButtonLink to="/packs" className="hero-start">
+                Commencer <ArrowRight size={18} aria-hidden="true" />
+              </ButtonLink>
             </div>
             <nav className="hero-levels" aria-labelledby="hero-levels-title">
               <h2 id="hero-levels-title">Choisis ton niveau</h2>
@@ -288,16 +291,16 @@ export default function Landing() {
           <ol>
             {[
               [
-                "Choisis ton niveau",
-                "Retrouve les matières de ton niveau scolaire.",
+                "Choisis ton pack",
+                "Découvre les packs et choisis celui qui te correspond.",
               ],
               [
-                "Découvre les cours",
-                "Explore les contenus sans créer de compte.",
+                "Sélectionne tes matières",
+                "Indique ton niveau et retrouve les matières disponibles.",
               ],
               [
-                "Pratique avec ton pack",
-                "Choisis tes matières pour les exercices et les séances live.",
+                "Crée ton compte",
+                "Renseigne tes informations et ton WhatsApp pour la validation.",
               ],
             ].map(([t, p], i) => (
               <li key={t}>
@@ -338,7 +341,7 @@ export default function Landing() {
         </div>
         <div>
           <a href="#matieres">Les cours</a>
-          <Link to="/connexion">Connexion</Link>
+          <Link to="/inscription">Connexion</Link>
           <Link to="/confidentialite">Confidentialité</Link>
           <Link to="/conditions">Conditions</Link>
           {demoEnabled && <Link to="/connexion#demo">Explorer la démo</Link>}

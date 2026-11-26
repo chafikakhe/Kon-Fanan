@@ -27,7 +27,7 @@ async function fixture(page: Page, mode: "signup" | "admin") {
   data.student_contacts.find(
     (c) => c.student_id === studentId,
   )!.whatsapp_number = "+212612345678";
-  let signup: any, reset: any;
+  let signup: any, reset: any, order: any;
   const emailCalls: string[] = [];
   if (mode === "admin")
     await page.addInitScript(
@@ -71,6 +71,44 @@ async function fixture(page: Page, mode: "signup" | "admin") {
         { id: demoID(50), name: "3ème collège A", year_label: "2026–2027" },
       ]);
     if (url.pathname === "/rest/v1/rpc/dashboard_counts") return respond({});
+    if (url.pathname === "/rest/v1/rpc/discovery_catalog") {
+      const args = request.postDataJSON();
+      const classIds = data.classes
+        .filter((c) => c.level_id === args.p_level_id)
+        .map((c) => c.id);
+      const subjectIds = data.class_subjects
+        .filter((s) => classIds.includes(s.class_id))
+        .map((s) => s.subject_id);
+      return respond({
+        levels: data.levels,
+        subjects: data.subjects.filter((s) => subjectIds.includes(s.id)),
+        packs: data.pack_offers,
+        level_id: args.p_level_id,
+        subject_id: null,
+        courses: [],
+        exercises: [],
+        has_more: false,
+      });
+    }
+    if (url.pathname === "/rest/v1/rpc/request_pack_order") {
+      order = request.postDataJSON();
+      const offer = data.pack_offers.find((p) => p.id === order.p_pack_id)!;
+      const row = {
+        id: demoID(990),
+        student_id: studentId,
+        pack_id: offer.id,
+        pack_name: offer.name,
+        subject_count: offer.subject_count,
+        total_price: offer.total_price,
+        currency: "MAD",
+        level_id: order.p_level_id,
+        subject_ids: order.p_subject_ids,
+        status: "pending_review",
+        created_at: new Date().toISOString(),
+      };
+      data.pack_orders.push(row as any);
+      return respond(row);
+    }
     if (url.pathname === "/rest/v1/rpc/admin_directory")
       return respond(data.profiles.map(({ id, email }) => ({ id, email })));
     if (url.pathname === "/rest/v1/rpc/decide_admission") {
@@ -107,7 +145,7 @@ async function fixture(page: Page, mode: "signup" | "admin") {
       `Unexpected fixture request ${request.method()} ${url.pathname}`,
     );
   });
-  return { values: () => ({ signup, reset, emailCalls }) };
+  return { values: () => ({ signup, reset, order, emailCalls }) };
 }
 
 test("inscription avec WhatsApp : compte en traitement sans email ni accès actif", async ({
@@ -115,12 +153,26 @@ test("inscription avec WhatsApp : compte en traitement sans email ni accès acti
 }) => {
   const state = await fixture(page, "signup");
   await page.goto("/inscription");
+  await expect(page.getByLabel("Nom complet")).toHaveCount(0);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Choisis ton pack", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Choisir Pack 2", exact: true })
+    .click();
+  await page.getByLabel("Ton niveau scolaire").selectOption(demoID(32));
+  await page.getByLabel("Mathématiques", { exact: true }).check();
+  await page.getByLabel("Physique-chimie", { exact: true }).check();
+  await page
+    .getByRole("button", { name: "Continuer vers l’inscription" })
+    .click();
+  await expect(page.getByLabel("Classe souhaitée")).toHaveCount(0);
   await page.getByLabel("Nom complet").fill("Adam Bennani");
   await page.getByLabel("Adresse email").fill("adam@example.test");
   await page.getByLabel("Mot de passe", { exact: true }).fill(password);
   await page.getByLabel("Confirmer le mot de passe").fill(password);
   await page.getByLabel("Numéro WhatsApp", { exact: true }).fill("0612345678");
-  await page.getByLabel("Classe souhaitée").selectOption(demoID(50));
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Créer mon compte" }).click();
   await expect(
@@ -134,10 +186,15 @@ test("inscription avec WhatsApp : compte en traitement sans email ni accès acti
   expect(state.values().signup.data).toEqual({
     display_name: "Adam Bennani",
     whatsapp_number: "+212612345678",
-    requested_class_id: demoID(50),
   });
   expect(state.values().signup.data.password).toBeUndefined();
   expect(state.values().emailCalls).toEqual([]);
+  expect(state.values().order.p_pack_id).toBe("pack-2");
+  expect(state.values().order.p_level_id).toBe(demoID(32));
+  expect(state.values().order.p_subject_ids).toEqual([demoID(40), demoID(41)]);
+  await expect(
+    page.getByText("Pack et matières sélectionnés", { exact: true }),
+  ).toBeVisible();
   await expect(page.getByText("Email confirmé", { exact: true })).toHaveCount(
     0,
   );

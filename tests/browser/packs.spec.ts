@@ -37,7 +37,7 @@ test("découverte publique, choix exact, connexion et demande sans faux paiement
     page.getByText("1/2 matières sélectionnées", { exact: true }),
   ).toBeVisible();
   const proceed = page.getByRole("button", {
-    name: "Continuer vers l’achat",
+    name: "Continuer vers l’inscription",
     exact: true,
   });
   await expect(proceed).toBeDisabled();
@@ -52,8 +52,7 @@ test("découverte publique, choix exact, connexion et demande sans faux paiement
   await expect(proceed).toBeEnabled();
   const before = new URL(page.url());
   await proceed.click();
-  await expect(page).toHaveURL(/\/connexion$/);
-  await page.getByRole("link", { name: "S’inscrire", exact: true }).click();
+  await expect(page).toHaveURL(/\/inscription\?etape=compte$/);
   await expect(page.getByLabel("Classe souhaitée")).toHaveCount(0);
   await expect(
     page.getByRole("button", { name: "Créer mon compte" }),
@@ -119,13 +118,14 @@ test("packs impossibles, changement de niveau et accès direct anonyme", async (
     .click();
   await page.getByLabel("Mathématiques", { exact: true }).uncheck();
   await expect(
-    page.getByRole("button", { name: "Continuer vers l’achat" }),
+    page.getByRole("button", { name: "Continuer vers l’inscription" }),
   ).toBeDisabled();
   await page.getByLabel("Français", { exact: true }).check();
   await expect(
     page.getByText(/Ce pack ne débloquera pas cet exercice/),
   ).toBeVisible();
   await page.getByLabel("Ton niveau scolaire").selectOption(id(31));
+  await page.getByRole("button", { name: "Changer de pack" }).click();
   await expect(
     page.getByRole("button", { name: "Choisir Pack 2", exact: true }),
   ).toBeDisabled();

@@ -2,6 +2,8 @@
 
 L’inscription conserve l’email et le mot de passe et demande un numéro WhatsApp obligatoire. Les numéros marocains `06…`/`07…` sont normalisés en `+212…` ; les numéros internationaux utilisent leur indicatif. Le compte reste `student / pending` et l’étudiant voit « Ton compte est en cours de traitement ». Aucun accès pédagogique n’est ouvert avant la décision administrative.
 
+Le parcours commence par le pack, puis le niveau et les matières, avant d’afficher les informations personnelles. Le CTA « Connexion » ouvre la page de départ avec le grand bouton « Sign in » ; un lien séparé permet la connexion d’un compte existant. La création du compte enregistre aussi la demande du pack choisi ; aucun choix supplémentaire de classe n’est demandé dans ce parcours. L’administration retrouve la demande dans « Packs et achats », avec un lien vers le dossier et le contact WhatsApp de l’étudiant.
+
 La confirmation par email doit être désactivée dans Supabase Auth (`mailer_autoconfirm: true` dans l’API Management, `auth.email.enable_confirmations = false` en local). Cela supprime l’envoi d’un email au signup ; les autres parcours email, notamment la récupération par email, nécessitent toujours un fournisseur SMTP si utilisés. La session obtenue immédiatement permet seulement de consulter l’état de traitement et les demandes de packs.
 
 ## Données et administration

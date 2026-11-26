@@ -33,6 +33,7 @@ import {
   type PackOrder,
 } from "../lib/packs";
 import { date, errorMessage, rolePath } from "../lib/utils";
+import { EnrollmentSteps } from "../components/EnrollmentStart";
 
 export function DiscoveryLayout() {
   const { user, demo } = useApp(),
@@ -59,7 +60,7 @@ export function DiscoveryLayout() {
                 ? user.status === "active"
                   ? rolePath(user.role)
                   : "/admission"
-                : "/connexion"
+                : "/inscription"
             }
           >
             {user ? "Mon espace" : "Se connecter"}
@@ -487,7 +488,7 @@ export function PacksPage() {
       url = journeyURL("/packs", checkout);
     rememberCheckout(url);
     if (!user) {
-      navigate("/connexion");
+      navigate("/inscription?etape=compte");
       return;
     }
     setBusy(true);
@@ -512,10 +513,17 @@ export function PacksPage() {
     }
   }
   return (
-    <>
+    <div className="pack-enrollment">
+      {!order && <EnrollmentSteps step={offer ? 2 : 1} />}
       <PageHeader
         eyebrow="TES MATIÈRES, TON CHOIX"
-        title={order ? "Ta demande de pack" : "Choisis ton pack"}
+        title={
+          order
+            ? "Ta demande de pack"
+            : offer
+              ? "Choisis tes matières"
+              : "Choisis ton pack"
+        }
         description="Un prix total clair. Les cours, les exercices et les séances live des matières que tu choisis."
         back={
           context.course
@@ -609,169 +617,204 @@ export function PacksPage() {
               pack incluant sa matière. Tu peux modifier la présélection.
             </Notice>
           )}
-          <Field label="Ton niveau scolaire">
-            <select
-              value={level?.id || ""}
-              onChange={(e) =>
-                navigate(journeyURL("/packs", { level: e.target.value }))
-              }
-            >
-              <option value="">Choisir un niveau</option>
-              {catalog.levels.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.label}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <div className="pack-grid">
-            {catalog.packs.map((p) => {
-              const reason = !p.is_active
-                ? "Ce pack est temporairement indisponible."
-                : !level
-                  ? "Choisis d’abord ton niveau."
-                  : available.length < p.subject_count
+          {!offer && (
+            <div className="pack-grid enrollment-stage" key="packs">
+              {catalog.packs.map((p) => {
+                const reason = !p.is_active
+                  ? "Ce pack est temporairement indisponible."
+                  : level && available.length < p.subject_count
                     ? `Ce niveau propose ${available.length} matière${available.length > 1 ? "s" : ""} ; ce pack en nécessite ${p.subject_count}.`
                     : "";
-              return (
-                <Panel
-                  className={`pack-card ${j.pack === p.id ? "selected" : ""}`}
-                  key={p.id}
-                >
-                  <span className="eyebrow">{p.name}</span>
-                  <div className="pack-price">
-                    {Number(p.total_price)} <span>DH</span>
-                  </div>
-                  <p>Prix total du pack</p>
-                  <h2>
-                    {p.subject_count} matière{p.subject_count > 1 ? "s" : ""} au
-                    choix
-                  </h2>
-                  <ul>
-                    <li>
-                      <Check size={17} />
-                      Tous les cours et exercices
-                    </li>
-                    <li>
-                      <Video size={17} />
-                      Séances live avec les professeurs
-                    </li>
-                  </ul>
-                  <Button
-                    variant={j.pack === p.id ? "primary" : "secondary"}
-                    disabled={!!reason}
-                    aria-pressed={j.pack === p.id}
-                    onClick={() =>
-                      update({
-                        pack: p.id,
-                        subjects: chosen.slice(0, p.subject_count),
-                      })
-                    }
+                return (
+                  <Panel
+                    className={`pack-card ${j.pack === p.id ? "selected" : ""}`}
+                    key={p.id}
                   >
-                    {j.pack === p.id ? "Pack sélectionné" : `Choisir ${p.name}`}
-                  </Button>
-                  {reason && <p className="small-text">{reason}</p>}
-                </Panel>
-              );
-            })}
-          </div>
-          {offer && level && (
-            <div className="split-layout pack-selection">
-              <Panel title="Choisis tes matières">
-                <p role="status" aria-live="polite">
-                  {chosen.length}/{offer.subject_count} matière
-                  {offer.subject_count > 1 ? "s" : ""} sélectionnée
-                  {offer.subject_count > 1 ? "s" : ""}
-                </p>
-                <div className="subject-choices">
-                  {available.map((s) => (
-                    <label
-                      className={`subject-choice ${chosen.includes(s.id) ? "selected" : ""}`}
-                      key={s.id}
+                    <span className="eyebrow">{p.name}</span>
+                    <div className="pack-price">
+                      {Number(p.total_price)} <span>DH</span>
+                    </div>
+                    <p>Prix total du pack</p>
+                    <h2>
+                      {p.subject_count} matière{p.subject_count > 1 ? "s" : ""}{" "}
+                      au choix
+                    </h2>
+                    <ul>
+                      <li>
+                        <Check size={17} />
+                        Tous les cours et exercices
+                      </li>
+                      <li>
+                        <Video size={17} />
+                        Séances live avec les professeurs
+                      </li>
+                    </ul>
+                    <Button
+                      variant={j.pack === p.id ? "primary" : "secondary"}
+                      disabled={!!reason}
+                      aria-pressed={j.pack === p.id}
+                      onClick={() =>
+                        update({
+                          pack: p.id,
+                          subjects: chosen.slice(0, p.subject_count),
+                        })
+                      }
                     >
-                      <input
-                        type="checkbox"
-                        checked={chosen.includes(s.id)}
-                        disabled={
-                          !chosen.includes(s.id) &&
-                          chosen.length >= offer.subject_count
-                        }
-                        onChange={() =>
-                          update({
-                            subjects: chosen.includes(s.id)
-                              ? chosen.filter((id) => id !== s.id)
-                              : [...chosen, s.id],
-                          })
-                        }
-                      />
-                      <BookOpen size={20} />
-                      <span>{s.label}</span>
-                    </label>
+                      {j.pack === p.id
+                        ? "Pack sélectionné"
+                        : `Choisir ${p.name}`}
+                    </Button>
+                    {reason && <p className="small-text">{reason}</p>}
+                  </Panel>
+                );
+              })}
+            </div>
+          )}
+          {offer && (
+            <div className="enrollment-stage" key="subjects">
+              <div className="enrollment-selection-heading">
+                <p>
+                  <strong>{offer.name}</strong> · {Number(offer.total_price)} DH
+                  au total · {offer.subject_count} matière
+                  {offer.subject_count > 1 ? "s" : ""} au choix
+                </p>
+                <Button
+                  variant="secondary"
+                  onClick={() => update({ pack: undefined })}
+                >
+                  Changer de pack
+                </Button>
+              </div>
+              <Field label="Ton niveau scolaire">
+                <select
+                  value={level?.id || ""}
+                  onChange={(e) =>
+                    navigate(
+                      journeyURL("/packs", {
+                        level: e.target.value,
+                        pack: offer.id,
+                      }),
+                    )
+                  }
+                >
+                  <option value="">Choisir un niveau</option>
+                  {catalog.levels.map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.label}
+                    </option>
                   ))}
-                </div>
-                {!available.length && (
-                  <Empty title="Aucune matière disponible à ce niveau" />
-                )}
-              </Panel>
-              <Panel title="Ton récapitulatif" className="checkout-summary">
-                <h3>
-                  {offer.name} · {Number(offer.total_price)} DH au total
-                </h3>
-                <p>{level.label}</p>
-                <ul>
-                  {chosen.map((id) => (
-                    <li key={id}>
-                      {available.find((s) => s.id === id)?.label}
-                    </li>
-                  ))}
-                </ul>
-                {context.subject &&
-                  !chosen.includes(context.subject) &&
-                  context.exercise && (
-                    <Notice>
-                      La matière de ton exercice n’est plus sélectionnée. Ce
-                      pack ne débloquera pas cet exercice.
-                    </Notice>
-                  )}
+                </select>
+              </Field>
+              {!level ? (
                 <Notice>
-                  Le paiement en ligne n’est pas connecté. Ta demande sera
-                  enregistrée ; seul un administrateur pourra activer le pack
-                  après vérification du règlement.
+                  Choisis ton niveau pour afficher les matières disponibles.
                 </Notice>
-                {user && user.role !== "student" ? (
-                  <Notice>
-                    Les achats de packs sont réservés aux comptes étudiants.
-                  </Notice>
-                ) : user && !["pending", "active"].includes(user.status) ? (
-                  <Notice>
-                    Contacte l’administration pour rétablir ton compte avant de
-                    demander un pack.
-                  </Notice>
-                ) : (
-                  <Button
-                    disabled={!valid || busy}
-                    onClick={() => void continueOrder()}
-                  >
-                    {busy
-                      ? "Enregistrement…"
-                      : user
-                        ? "Envoyer ma demande d’achat"
-                        : "Continuer vers l’achat"}
-                    <ArrowRight size={17} />
-                  </Button>
-                )}
-                {!user && (
-                  <p className="small-text">
-                    Connexion ou inscription à la prochaine étape. Ton choix
-                    sera conservé.
-                  </p>
-                )}
-              </Panel>
+              ) : (
+                <div className="split-layout pack-selection">
+                  <Panel title="Les matières disponibles">
+                    <p role="status" aria-live="polite">
+                      {chosen.length}/{offer.subject_count} matière
+                      {offer.subject_count > 1 ? "s" : ""} sélectionnée
+                      {offer.subject_count > 1 ? "s" : ""}
+                    </p>
+                    <div className="subject-choices">
+                      {available.map((s) => (
+                        <label
+                          className={`subject-choice ${chosen.includes(s.id) ? "selected" : ""}`}
+                          key={s.id}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={chosen.includes(s.id)}
+                            disabled={
+                              !chosen.includes(s.id) &&
+                              chosen.length >= offer.subject_count
+                            }
+                            onChange={() =>
+                              update({
+                                subjects: chosen.includes(s.id)
+                                  ? chosen.filter((id) => id !== s.id)
+                                  : [...chosen, s.id],
+                              })
+                            }
+                          />
+                          <BookOpen size={20} />
+                          <span>{s.label}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {!available.length && (
+                      <Empty title="Aucune matière disponible à ce niveau" />
+                    )}
+                    {available.length < offer.subject_count && (
+                      <Notice>
+                        Ce niveau propose {available.length} matière(s) ; ce
+                        pack en nécessite {offer.subject_count}. Choisis un
+                        autre niveau ou un autre pack.
+                      </Notice>
+                    )}
+                  </Panel>
+                  <Panel title="Ton récapitulatif" className="checkout-summary">
+                    <h3>
+                      {offer.name} · {Number(offer.total_price)} DH au total
+                    </h3>
+                    <p>{level.label}</p>
+                    <ul>
+                      {chosen.map((id) => (
+                        <li key={id}>
+                          {available.find((s) => s.id === id)?.label}
+                        </li>
+                      ))}
+                    </ul>
+                    {context.subject &&
+                      !chosen.includes(context.subject) &&
+                      context.exercise && (
+                        <Notice>
+                          La matière de ton exercice n’est plus sélectionnée. Ce
+                          pack ne débloquera pas cet exercice.
+                        </Notice>
+                      )}
+                    <Notice>
+                      Le paiement en ligne n’est pas connecté. Ta demande sera
+                      enregistrée ; seul un administrateur pourra activer le
+                      pack après vérification du règlement.
+                    </Notice>
+                    {user && user.role !== "student" ? (
+                      <Notice>
+                        Les achats de packs sont réservés aux comptes étudiants.
+                      </Notice>
+                    ) : user && !["pending", "active"].includes(user.status) ? (
+                      <Notice>
+                        Contacte l’administration pour rétablir ton compte avant
+                        de demander un pack.
+                      </Notice>
+                    ) : (
+                      <Button
+                        disabled={!valid || busy}
+                        onClick={() => void continueOrder()}
+                      >
+                        {busy
+                          ? "Enregistrement…"
+                          : user
+                            ? "Envoyer ma demande d’achat"
+                            : "Continuer vers l’inscription"}
+                        <ArrowRight size={17} />
+                      </Button>
+                    )}
+                    {!user && (
+                      <p className="small-text">
+                        Crée ton compte à la prochaine étape. Ton choix sera
+                        conservé.
+                      </p>
+                    )}
+                  </Panel>
+                </div>
+              )}
             </div>
           )}
         </>
       )}
-    </>
+    </div>
   );
 }
 export function StudentPacks({ compact = false }: { compact?: boolean }) {

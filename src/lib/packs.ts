@@ -122,6 +122,14 @@ export function checkoutReturn(): string | null {
   }
   return null;
 }
+export function checkoutJourney(): Journey | null {
+  const url = checkoutReturn();
+  if (!url) return null;
+  const journey = readJourney(new URL(url, window.location.origin).search);
+  return journey.level && journey.pack && journey.subjects?.length
+    ? journey
+    : null;
+}
 export function demoCatalog(j: Journey, offset = 0): Catalog {
   let d: Data = seedDemo();
   try {
