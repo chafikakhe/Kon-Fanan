@@ -325,7 +325,7 @@ export function Legal() {
       </header>
       <main>
         <span className="editorial-kicker">
-          KON-FANAN · INFORMATION DE PRÉLANCEMENT
+          motafawiq.ma · INFORMATION DE PRÉLANCEMENT
         </span>
         <h1>{isPrivacy ? "Confidentialité" : "Conditions d’utilisation"}</h1>
         <Notice>

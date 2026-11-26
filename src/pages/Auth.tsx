@@ -48,6 +48,19 @@ export default function Auth() {
     forgot = path === "/mot-de-passe-oublie",
     reset = path === "/nouveau-mot-de-passe";
   useEffect(() => {
+    const title = signup
+      ? "Inscription"
+      : forgot
+        ? "Mot de passe oublié"
+        : reset
+          ? "Nouveau mot de passe"
+          : "Connexion";
+    document.title = `motafawiq.ma — ${title}`;
+    return () => {
+      document.title = "motafawiq.ma — Apprends. Comprends. Réussis.";
+    };
+  }, [signup, forgot, reset]);
+  useEffect(() => {
     setComplete(false);
     if (signup) {
       if (!supabase) {
@@ -385,7 +398,11 @@ export default function Auth() {
         </Panel>
       </div>
       <footer className="auth-footer">
-        Kon-fanan © 2026 <span>Du collège au lycée, à ton rythme.</span>
+        <div className="footer-brand">
+          <Logo compact />
+          <span>motafawiq.ma © 2026</span>
+        </div>
+        <span>Du collège au lycée, à ton rythme.</span>
       </footer>
     </div>
   );

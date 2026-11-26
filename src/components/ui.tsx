@@ -16,22 +16,27 @@ import {
   Inbox,
   Check,
   AlertCircle,
-  BookOpen,
-  Sun,
 } from "lucide-react";
 import { statusLabel } from "../lib/utils";
-export function Logo({ compact = false }: { compact?: boolean }) {
+export function Logo({
+  compact = false,
+  stacked = false,
+}: {
+  compact?: boolean;
+  stacked?: boolean;
+}) {
   return (
-    <Link to="/" className="logo" aria-label="Kon-fanan, accueil">
-      <span className="logo-mark">
-        <Sun size={32} />
-        <BookOpen size={30} />
-      </span>
-      {!compact && (
-        <span>
-          Kon-fanan<span className="logo-dot">.</span>
-        </span>
-      )}
+    <Link
+      to="/"
+      className={`logo${compact ? " logo-compact" : ""}${stacked ? " logo-stacked" : ""}`}
+      aria-label="motafawiq.ma, accueil"
+    >
+      <img
+        src={`/branding/${compact ? "symbol" : stacked ? "logo" : "logo-horizontal"}.png`}
+        alt="motafawiq.ma"
+        width={compact ? 157 : stacked ? 570 : 720}
+        height={compact ? 192 : stacked ? 499 : 192}
+      />
     </Link>
   );
 }

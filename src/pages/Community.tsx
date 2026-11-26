@@ -1056,7 +1056,7 @@ export function SessionEditor() {
           </h2>
           <p>
             Connectez votre compte Google, planifiez la séance, puis laissez
-            Kon-fanan préparer le lien pour votre groupe.
+            motafawiq.ma prépare le lien pour votre groupe.
           </p>
           <Notice>
             L’annonce n’est publiée aux étudiants que lorsque le lien est prêt.
@@ -1303,7 +1303,7 @@ export function GoogleIntegration() {
       <PageHeader
         eyebrow="DES COURS, DES RENCONTRES"
         title="Google Calendar & Meet"
-        description="Planifiez vos séances directement depuis Kon-fanan."
+        description="Planifiez vos séances directement depuis motafawiq.ma."
       />
       <Panel className="google-integration">
         <div className="google-icon large">G</div>
@@ -1314,7 +1314,7 @@ export function GoogleIntegration() {
           Votre calendrier, à jour.
         </h2>
         <p>
-          Autorisez Kon-fanan à gérer les événements créés pour vos cours dans
+          Autorisez motafawiq.ma à gérer les événements créés pour vos cours dans
           votre calendrier Google. Les identifiants de connexion restent
           protégés côté serveur.
         </p>

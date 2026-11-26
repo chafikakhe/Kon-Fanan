@@ -66,8 +66,8 @@ export async function normalizeFile(
         page.node.delete(PDFName.of("AA"));
         clean.addPage(page);
       }
-      clean.setProducer("Kon-fanan");
-      clean.setCreator("Kon-fanan");
+      clean.setProducer("motafawiq.ma");
+      clean.setCreator("motafawiq.ma");
       return await clean.save();
     }
     await initialize();

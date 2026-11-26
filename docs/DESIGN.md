@@ -24,7 +24,7 @@ Le menu mobile retient le focus, se ferme avec Échap et rend sa navigation iner
 
 ## Ressources
 
-Les photographies ont été téléchargées depuis Unsplash puis converties localement en WebP. Elles sont illustratives et ne représentent pas les utilisateurs de Kon-fanan. Aucun appel Unsplash n’est nécessaire à l’exécution.
+Les photographies ont été téléchargées depuis Unsplash puis converties localement en WebP. Elles sont illustratives et ne représentent pas les utilisateurs de motafawiq.ma. Aucun appel Unsplash n’est nécessaire à l’exécution.
 
 | Fichier | Source |
 |---|---|

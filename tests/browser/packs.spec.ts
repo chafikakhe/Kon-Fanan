@@ -8,11 +8,17 @@ test("découverte publique, choix exact, connexion et demande sans faux paiement
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await page.getByRole("link", { name: "Commencer", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Quel est ton niveau ?" }),
+    page.getByRole("heading", {
+      name: "Choisis ton niveau",
+      exact: true,
+      level: 2,
+    }),
   ).toBeVisible();
   await page.getByRole("link", { name: /3ème année collège/ }).click();
+  await expect(
+    page.getByRole("heading", { name: "Choisis ta matière", exact: true }),
+  ).toBeVisible();
   await page.getByRole("link", { name: /Mathématiques/ }).click();
   await page.getByRole("link", { name: "Ouvrir le cours" }).first().click();
   await expect(page.locator(".lesson-body")).toContainText(/.+/);

@@ -122,7 +122,7 @@ export function publicMessage(code: string): string {
     RATE_LIMITED: "Trop de tentatives. Réessayez dans quelques minutes.",
     MEETING_NOT_JOINABLE: "La séance n’est pas accessible à cet horaire.",
     OAUTH_FLOW_INVALID:
-      "Ce lien de connexion est expiré ou invalide. Recommencez depuis Kon-fanan.",
+      "Ce lien de connexion est expiré ou invalide. Recommencez depuis motafawiq.ma.",
   };
   return (
     messages[code] ||

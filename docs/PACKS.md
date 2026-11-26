@@ -2,7 +2,7 @@
 
 ## Parcours livré
 
-Le bouton « Commencer » ouvre `/decouvrir` : niveaux actifs, matières associées aux classes actives, puis cours publiés de leurs professeurs actifs. `/decouvrir/cours/:id` expose le contenu et la vidéo du cours ainsi que les titres des exercices. Les PDF attachés au cours sont maintenant lisibles sous sa vidéo via un accès public borné au cours publié : voir [COURSE_READER.md](COURSE_READER.md). Les consignes, pièces jointes d’exercice/copies et liens live ne font pas partie du catalogue public. Les listes de cours sont paginées par 24.
+La page d’accueil affiche directement les niveaux actifs du catalogue sous « Choisis ton niveau ». Chaque ligne ouvre `/decouvrir?level=…` pour choisir une matière, puis consulter les cours publiés de ses professeurs actifs. `/decouvrir` conserve aussi la liste des niveaux. `/decouvrir/cours/:id` expose le contenu et la vidéo du cours ainsi que les titres des exercices. Les PDF attachés au cours sont maintenant lisibles sous sa vidéo via un accès public borné au cours publié : voir [COURSE_READER.md](COURSE_READER.md). Les consignes, pièces jointes d’exercice/copies et liens live ne font pas partie du catalogue public. Les listes de cours sont paginées par 24.
 
 Le clic sur un exercice vérifie les droits actuels côté serveur. Un accès historique valide ou un pack actif couvrant sa matière et son niveau permet de l’ouvrir. Sinon, `/packs` conserve le niveau, la matière, le cours et l’exercice dans l’URL. La matière est présélectionnée et peut être retirée ; un avertissement indique alors que l’exercice initial restera protégé.
 

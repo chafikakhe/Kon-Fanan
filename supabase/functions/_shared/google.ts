@@ -79,7 +79,7 @@ export async function tokenExchange(
       result.error === "invalid_grant"
         ? "GOOGLE_RECONNECT_REQUIRED"
         : "PROVIDER_UNAVAILABLE",
-      "Google n’a pas pu confirmer la connexion. Réessayez depuis Kon-fanan.",
+      "Google n’a pas pu confirmer la connexion. Réessayez depuis motafawiq.ma.",
       result.error === "invalid_grant" ? 422 : 502,
       response.status >= 500,
     );

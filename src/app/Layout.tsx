@@ -146,7 +146,10 @@ export function Layout() {
   useEffect(() => {
     setMenu(false);
     window.scrollTo(0, 0);
-    document.title = `Kon-fanan — ${roleLabel(user!.role)}`;
+    document.title = `motafawiq.ma — ${roleLabel(user!.role)}`;
+    return () => {
+      document.title = "motafawiq.ma — Apprends. Comprends. Réussis.";
+    };
   }, [location.pathname]);
   useEffect(() => {
     const m = document.createElement("meta");
@@ -334,9 +337,12 @@ export function Layout() {
           )}
         </main>
         <footer className="workspace-footer">
-          <span>Kon-fanan. Apprendre ouvre des portes.</span>
+          <div className="footer-brand">
+            <Logo compact />
+            <span>Apprendre ouvre des portes.</span>
+          </div>
           <Link to="/">
-            Découvrir Kon-fanan <ArrowUpRight size={12} />
+            Découvrir motafawiq.ma <ArrowUpRight size={12} />
           </Link>
         </footer>
       </div>

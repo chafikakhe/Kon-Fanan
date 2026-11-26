@@ -106,7 +106,7 @@ export async function processJob(
   const desired = {
     summary: announcement.title,
     description:
-      "Séance Kon-fanan. Retrouvez les informations dans votre espace.",
+      "Séance motafawiq.ma. Retrouvez les informations dans votre espace.",
     start: { dateTime: meeting.starts_at, timeZone: meeting.timezone },
     end: { dateTime: meeting.ends_at, timeZone: meeting.timezone },
     extendedProperties: {

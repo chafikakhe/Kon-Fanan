@@ -1,6 +1,8 @@
-# Kon-fanan
+# motafawiq.ma
 
 Application web React 19, TypeScript strict, Vite et React Router, avec backend Supabase Auth/PostgreSQL/Storage/Edge Functions. Interface en français, landing éditoriale crème et trois espaces photographiques en verre sombre.
+
+L’identité visuelle utilise le logo fourni pour **motafawiq.ma**. Régénération des logos et icônes : `npm run brand:assets`. Les variantes, identifiants conservés et réglages externes sont documentés dans [BRANDING.md](docs/BRANDING.md).
 
 ## Lancer le projet
 

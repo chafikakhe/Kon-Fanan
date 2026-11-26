@@ -11,12 +11,18 @@ import {
   Sparkles,
   Video,
 } from "lucide-react";
-import { Logo, ButtonLink } from "../components/ui";
+import { Logo, Button, ButtonLink, Loading, Notice } from "../components/ui";
 import { demoEnabled } from "../lib/supabase";
+import { journeyURL, useCatalog } from "../lib/packs";
+import { HeroBackground } from "../components/HeroBackground";
 export default function Landing() {
+  const { catalog, loading, error, retry } = useCatalog({});
   return (
     <div className="landing">
+      <HeroBackground />
+      <div className="hero-shade" aria-hidden="true" />
       <header className="landing-header">
+        <Logo />
         <nav aria-label="Navigation principale">
           <a href="#apropos">À propos</a>
           <a href="#matieres">Les cours</a>
@@ -26,34 +32,54 @@ export default function Landing() {
       </header>
       <main>
         <section className="landing-hero">
-          <img
-            src="/images/hero.webp"
-            alt="Étudiants réunis autour de leurs cours"
-            fetchPriority="high"
-            width="1920"
-            height="1280"
-          />
-          <div className="hero-shade" />
           <div className="hero-content">
-            <span className="hero-kicker">
-              <span />
-              DU COLLÈGE AU LYCÉE, LE DÉCLIC COMMENCE ICI
-            </span>
-            <h1>
-              APPRENDS.
-              <br />
-              COMPRENDS.
-              <br />
-              <span>RÉUSSIS.</span>
-            </h1>
-            <p>
-              Des cours qui éclairent. Des profs qui t’accompagnent.
-              <br />
-              Un avenir qui se construit, à ton rythme.
-            </p>
-            <ButtonLink to="/decouvrir">
-              Commencer <ArrowRight size={18} />
-            </ButtonLink>
+            <div className="hero-copy">
+              <span className="hero-kicker">
+                <span />
+                DU COLLÈGE AU LYCÉE, LE DÉCLIC COMMENCE ICI
+              </span>
+              <h1>
+                APPRENDS.
+                <br />
+                COMPRENDS.
+                <br />
+                <span>RÉUSSIS.</span>
+              </h1>
+              <p>
+                Des cours qui éclairent. Des profs qui t’accompagnent.
+                <br />
+                Un avenir qui se construit, à ton rythme.
+              </p>
+            </div>
+            <nav className="hero-levels" aria-labelledby="hero-levels-title">
+              <h2 id="hero-levels-title">Choisis ton niveau</h2>
+              {loading ? (
+                <Loading />
+              ) : error ? (
+                <Notice tone="error">
+                  Impossible de charger les niveaux.
+                  <Button variant="secondary" onClick={retry}>
+                    Réessayer
+                  </Button>
+                </Notice>
+              ) : catalog?.levels.length ? (
+                <ul className="hero-level-list">
+                  {catalog.levels.map((level) => (
+                    <li key={level.id}>
+                      <ButtonLink
+                        to={journeyURL("/decouvrir", { level: level.id })}
+                        className="hero-level-link"
+                      >
+                        <span>{level.label}</span>
+                        <ArrowRight size={18} aria-hidden="true" />
+                      </ButtonLink>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>Les niveaux seront bientôt disponibles.</p>
+              )}
+            </nav>
             <div className="hero-footnote">
               Tes idées vont plus loin que tu ne le penses.
             </div>
@@ -71,7 +97,9 @@ export default function Landing() {
         </section>
         <section id="apropos" className="intro-section landing-section">
           <div className="intro-copy">
-            <span className="editorial-kicker">BIENVENUE CHEZ KON-FANAN</span>
+            <span className="editorial-kicker">
+              BIENVENUE CHEZ motafawiq.ma
+            </span>
             <h2>
               TON AVENIR
               <br />
@@ -152,7 +180,7 @@ export default function Landing() {
               <h2>
                 LA MÉTHODE
                 <br />
-                KON-FANAN.
+                <span className="brand-name">motafawiq.ma</span>
               </h2>
             </div>
             <p>
@@ -305,7 +333,7 @@ export default function Landing() {
       </main>
       <footer className="landing-footer">
         <div>
-          <Logo />
+          <Logo stacked />
           <p>Apprendre, comprendre, réussir.</p>
         </div>
         <div>
@@ -315,7 +343,7 @@ export default function Landing() {
           <Link to="/conditions">Conditions</Link>
           {demoEnabled && <Link to="/connexion#demo">Explorer la démo</Link>}
         </div>
-        <span>© 2026 Kon-fanan</span>
+        <span>© 2026 motafawiq.ma</span>
       </footer>
     </div>
   );

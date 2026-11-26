@@ -15,6 +15,7 @@
     "test:sql": "node tests/database.mjs",
     "test:edge": "deno test --config supabase/functions/deno.json --allow-read --allow-env tests/edge/",
     "check:edge": "deno check --config supabase/functions/deno.json supabase/functions/*/index.ts supabase/functions/_shared/*.ts",
+    "brand:assets": "node scripts/generate-brand-assets.mjs",
     "format": "prettier --write src tests vite.config.ts playwright.config.ts vitest.config.ts",
     "postinstall": "node scripts/copy-pdf-assets.mjs",
     "predev": "node scripts/copy-pdf-assets.mjs",

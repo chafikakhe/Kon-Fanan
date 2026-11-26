@@ -2389,7 +2389,7 @@ export function References() {
       <PageHeader
         eyebrow="LES REPÈRES COMMUNS"
         title="Référentiels"
-        description="Configurez l’organisation pédagogique de Kon-fanan."
+        description="Configurez l’organisation pédagogique de motafawiq.ma."
       />
       <Panel>
         <Tabs
